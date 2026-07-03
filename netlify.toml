@@ -1,0 +1,9 @@
+# Netlify 설정 (정적 사이트 — 빌드 없음)
+[build]
+  publish = "."
+
+# 오디오 파일 캐시 (선택)
+[[headers]]
+  for = "/음원/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"

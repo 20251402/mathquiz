@@ -1,0 +1,3940 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>수학 문제 만들기</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  .container {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    padding: 40px;
+    max-width: 720px;
+    width: 100%;
+  }
+  h1 {
+    text-align: center;
+    color: #4a4a8a;
+    margin-bottom: 25px;
+    font-size: 28px;
+  }
+  h2 {
+    color: #4a4a8a;
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+
+  /* ===== 설정 화면 ===== */
+  .settings-screen .setting-block {
+    background: #f7f7ff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 18px;
+  }
+  .settings-screen select,
+  .settings-screen input[type="number"] {
+    padding: 10px 16px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: 2px solid #ccc;
+    width: 100%;
+    max-width: 240px;
+  }
+  .time-input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .time-input-row input { width: 100px; }
+  .time-input-row .preset,
+  .time-input-row .preset-ta {
+    padding: 8px 14px;
+    background: #fff;
+    border: 2px solid #d4d4f0;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.15s;
+  }
+  .time-input-row .preset:hover,
+  .time-input-row .preset-ta:hover { background: #e0e0f5; }
+  .time-input-row .preset.active,
+  .time-input-row .preset-ta.active {
+    background: #667eea;
+    color: #fff;
+    border-color: #667eea;
+  }
+
+  .timer-style-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+  }
+  .timer-style-option {
+    background: #fff;
+    border: 2px solid #d4d4f0;
+    border-radius: 10px;
+    padding: 14px 10px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+  }
+  .timer-style-option:hover { background: #f0f0fa; }
+  .timer-style-option.active {
+    border-color: #667eea;
+    background: #eef0fe;
+  }
+  .timer-style-option .label {
+    font-weight: bold;
+    color: #4a4a8a;
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+  .timer-style-option .preview {
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #6a4c93;
+    font-weight: bold;
+  }
+  .preview-bar {
+    width: 100%;
+    height: 10px;
+    background: #eee;
+    border-radius: 5px;
+    overflow: hidden;
+  }
+  .preview-bar > div {
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, #4caf50, #ffeb3b);
+  }
+  .preview-circle {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: conic-gradient(#667eea 0% 60%, #eee 60% 100%);
+    display: flex; justify-content: center; align-items: center;
+    font-size: 13px;
+    color: #333;
+  }
+  .preview-circle span {
+    background: #fff;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    display: flex; justify-content: center; align-items: center;
+  }
+
+  .start-btn {
+    display: block;
+    margin: 25px auto 0;
+    padding: 16px 50px;
+    font-size: 20px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: transform 0.2s;
+  }
+  .start-btn:hover { transform: scale(1.05); }
+
+  /* ===== 퀴즈 화면 ===== */
+  .quiz-screen .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .back-btn {
+    background: none;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    padding: 6px 14px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #555;
+  }
+  .back-btn:hover { background: #f0f0f0; }
+  .stats {
+    display: flex;
+    gap: 18px;
+    font-size: 15px;
+    color: #555;
+  }
+
+  /* 타이머 표시 영역 */
+  .timer-area { margin-bottom: 20px; min-height: 12px; }
+  .timer-bar {
+    width: 100%;
+    height: 14px;
+    background: #eee;
+    border-radius: 7px;
+    overflow: hidden;
+  }
+  .timer-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4caf50, #ffeb3b, #f44336);
+    background-size: 300% 100%;
+    background-position: 0% 0%;
+    transition: width 0.1s linear, background-position 0.1s linear;
+  }
+  .timer-number {
+    text-align: center;
+    font-size: 36px;
+    font-weight: bold;
+    color: #4a4a8a;
+    font-variant-numeric: tabular-nums;
+  }
+  .timer-number.danger { color: #e53935; }
+  .timer-circle {
+    width: 80px; height: 80px;
+    margin: 0 auto;
+    border-radius: 50%;
+    background: conic-gradient(#4caf50 0% 100%, #eee 100% 100%);
+    display: flex; justify-content: center; align-items: center;
+    transition: background 0.1s linear;
+  }
+  .timer-circle .inner {
+    width: 64px; height: 64px;
+    background: #fff;
+    border-radius: 50%;
+    display: flex; justify-content: center; align-items: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: #4a4a8a;
+    font-variant-numeric: tabular-nums;
+  }
+  .timer-area.style-bar .timer-number,
+  .timer-area.style-bar .timer-circle { display: none; }
+  .timer-area.style-number .timer-bar,
+  .timer-area.style-number .timer-circle { display: none; }
+  .timer-area.style-both .timer-circle { display: none; }
+  .timer-area.style-both .timer-number { margin-top: 8px; font-size: 18px; }
+  .timer-area.style-circle .timer-bar,
+  .timer-area.style-circle .timer-number { display: none; }
+  .timer-area.style-hidden .timer-bar,
+  .timer-area.style-hidden .timer-number,
+  .timer-area.style-hidden .timer-circle { display: none; }
+
+  /* 문제 영역 */
+  .problem {
+    text-align: center;
+    font-size: 48px;
+    color: #333;
+    margin: 25px 0;
+    min-height: 120px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+  .frac {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 42px;
+    line-height: 1;
+    vertical-align: middle;
+  }
+  .frac .num {
+    border-bottom: 3px solid #333;
+    padding: 0 8px 4px;
+  }
+  .frac .den {
+    padding: 4px 8px 0;
+  }
+  .op {
+    font-size: 42px;
+    color: #6a4c93;
+    font-weight: bold;
+  }
+  .num-text {
+    font-size: 42px;
+    color: #333;
+    font-weight: 500;
+  }
+  .expr {
+    font-size: 42px;
+    color: #333;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .expr sup {
+    font-size: 0.6em;
+    vertical-align: super;
+    line-height: 1;
+  }
+  /* 분수 지수: 진짜 위첨자 위치에 작은 분수 형태로 표시 */
+  .expr .exp-frac-sup {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    vertical-align: super;
+    font-size: 0.5em;
+    line-height: 1;
+    margin-left: 2px;
+    text-align: center;
+  }
+  .expr .exp-frac-sup .exp-frac-num {
+    border-bottom: 1.5px solid currentColor;
+    padding: 0 5px 1px;
+    display: block;
+    font-size: 1em;
+  }
+  .expr .exp-frac-sup .exp-frac-den {
+    padding: 2px 5px 0;
+    display: block;
+    font-size: 1em;
+  }
+  .ineq-sym { color: #6a4c93; font-weight: bold; padding: 0 4px; font-size: 42px; }
+  .line-break { flex-basis: 100%; height: 0; }
+  .arrow { font-size: 38px; color: #6a4c93; padding: 0 4px; }
+  /* 옵션 영역에서는 약간 작게 */
+  .option .num-text,
+  .option .expr { font-size: 28px; }
+  .option .expr sup { font-size: 0.55em; }
+  .option .frac { font-size: 26px; }
+  /* 다음 문제 버튼 비활성화 */
+  .next-btn:disabled {
+    background: #cccccc !important;
+    color: #888 !important;
+    cursor: not-allowed;
+    transform: none !important;
+    opacity: 0.6;
+  }
+  .options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  .option {
+    background: #f0f0fa;
+    border: 3px solid transparent;
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    font-size: 28px;
+    transition: all 0.2s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80px;
+  }
+  .option:hover { background: #e0e0f5; transform: translateY(-2px); }
+  .option.correct { background: #c8e6c9; border-color: #4caf50; }
+  .option.wrong { background: #ffcdd2; border-color: #f44336; }
+  .option.disabled { pointer-events: none; opacity: 0.6; }
+  .feedback {
+    text-align: center;
+    font-size: 22px;
+    margin: 15px 0;
+    min-height: 30px;
+    font-weight: bold;
+  }
+  .feedback.correct { color: #4caf50; }
+  .feedback.wrong { color: #f44336; }
+  .next-btn {
+    display: block;
+    margin: 0 auto;
+    padding: 14px 40px;
+    font-size: 18px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: transform 0.2s;
+  }
+  .next-btn:hover { transform: scale(1.05); }
+
+  .hidden { display: none !important; }
+
+  /* ===================== 로딩 / 입장 화면 ===================== */
+  .app-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    text-align: center;
+    transition: opacity 0.6s ease;
+  }
+  .app-overlay.fade-out { opacity: 0; pointer-events: none; }
+  .app-overlay.gone { display: none; }
+
+  /* ----- 로딩 ----- */
+  #loadingScreen .load-emojis {
+    font-size: 54px;
+    letter-spacing: 12px;
+    margin-bottom: 26px;
+  }
+  #loadingScreen .load-emojis span {
+    display: inline-block;
+    animation: load-bounce 1s infinite ease-in-out;
+  }
+  #loadingScreen .load-emojis span:nth-child(2) { animation-delay: .15s; }
+  #loadingScreen .load-emojis span:nth-child(3) { animation-delay: .30s; }
+  #loadingScreen .load-emojis span:nth-child(4) { animation-delay: .45s; }
+  @keyframes load-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-18px); }
+  }
+  #loadingScreen .load-title {
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 28px;
+    opacity: .95;
+  }
+  .load-bar {
+    width: 240px;
+    height: 10px;
+    background: rgba(255,255,255,.25);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .load-bar > div {
+    height: 100%;
+    width: 0%;
+    background: #fff;
+    border-radius: 6px;
+    transition: width .2s linear;
+  }
+  #loadingScreen .load-text { margin-top: 14px; font-size: 14px; opacity: .8; }
+
+  /* ----- 입장 ----- */
+  #entranceScreen { z-index: 1001; }
+  .entrance-card {
+    position: relative;
+    z-index: 2;
+    background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.3);
+    backdrop-filter: blur(8px);
+    border-radius: 24px;
+    padding: 50px 44px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.3);
+    max-width: 460px;
+  }
+  .entrance-card .e-icon { font-size: 64px; margin-bottom: 10px; }
+  .entrance-card h1 { color: #fff; font-size: 34px; margin-bottom: 12px; }
+  .entrance-card .e-sub {
+    font-size: 16px; opacity: .9; margin-bottom: 32px; line-height: 1.6;
+  }
+  .enter-btn {
+    background: #fff;
+    color: #5a3e8a;
+    border: none;
+    padding: 16px 40px;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(0,0,0,.25);
+    transition: transform .15s, box-shadow .15s;
+  }
+  .enter-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 26px rgba(0,0,0,.3); }
+  .enter-btn:active { transform: translateY(0); }
+  .e-status { margin-top: 14px; font-size: 14px; min-height: 20px; opacity: .9; }
+  .entrance-credit { margin-top: 22px; font-size: 12px; opacity: .6; }
+  .float-deco {
+    position: absolute;
+    z-index: 1;
+    font-size: 44px;
+    opacity: .18;
+    user-select: none;
+    animation: floaty 6s infinite ease-in-out;
+  }
+  @keyframes floaty {
+    0%, 100% { transform: translateY(0) rotate(0); }
+    50% { transform: translateY(-26px) rotate(12deg); }
+  }
+
+  /* ----- 로그인 화면 ----- */
+  #loginScreen { z-index: 1002; }
+  .auth-card {
+    background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.3);
+    backdrop-filter: blur(8px);
+    border-radius: 24px;
+    padding: 44px 40px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.3);
+    width: 340px;
+    max-width: 90vw;
+  }
+  .auth-card .e-icon { font-size: 56px; margin-bottom: 8px; }
+  .auth-card h1 { color: #fff; font-size: 30px; margin-bottom: 10px; }
+  .auth-card .e-sub { color: #fff; font-size: 15px; opacity: .9; margin-bottom: 26px; }
+  .auth-input {
+    display: block;
+    width: 100%;
+    padding: 13px 16px;
+    margin-bottom: 12px;
+    font-size: 16px;
+    border: none;
+    border-radius: 10px;
+    background: rgba(255,255,255,.92);
+    color: #333;
+  }
+  .auth-input:focus { outline: 3px solid rgba(255,255,255,.6); }
+  .auth-btn {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    background: #fff;
+    color: #5a3e8a;
+    box-shadow: 0 6px 16px rgba(0,0,0,.2);
+    transition: transform .12s, box-shadow .12s;
+  }
+  .auth-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(0,0,0,.28); }
+  .auth-btn.ghost {
+    background: transparent;
+    color: #fff;
+    border: 2px solid rgba(255,255,255,.7);
+    box-shadow: none;
+  }
+  .auth-btn.ghost:hover { background: rgba(255,255,255,.15); }
+  .auth-msg { min-height: 20px; margin: 12px 0 4px; font-size: 14px; font-weight: bold; }
+  .auth-msg.err { color: #ffd6d6; }
+  .auth-msg.ok  { color: #d6ffd6; }
+
+  /* ----- 사용자 배지 ----- */
+  .user-badge {
+    position: fixed; top: 14px; right: 16px; z-index: 50;
+    background: rgba(255,255,255,.92); color: #4a4a8a;
+    padding: 8px 14px; border-radius: 20px;
+    font-size: 13px; font-weight: bold;
+    box-shadow: 0 4px 12px rgba(0,0,0,.18);
+  }
+  .user-badge.guest { color: #9a5a2a; }
+
+  /* ===================== 메인(홈) 화면 ===================== */
+  .home-profile {
+    display: flex; align-items: center; gap: 14px;
+    background: linear-gradient(135deg, #eef0fe, #f7e9ff);
+    border-radius: 18px; padding: 16px 18px; margin-bottom: 18px;
+    cursor: pointer; border: 2px solid transparent; transition: border-color .15s;
+  }
+  .home-profile:hover { border-color: #c9b8ff; }
+  .profile-avatar {
+    width: 60px; height: 60px; border-radius: 50%;
+    background: linear-gradient(135deg, #667eea, #764ba2); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px; flex-shrink: 0;
+  }
+  .profile-info { flex: 1; min-width: 0; }
+  .profile-name { font-size: 19px; font-weight: bold; color: #4a4a8a; }
+  .profile-id { font-size: 13px; color: #888; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .profile-ach {
+    position: relative;
+    background: #fff; color: #6a4c93; font-weight: bold;
+    border-radius: 20px; padding: 8px 14px; font-size: 13px; white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0,0,0,.1);
+  }
+  .home-section-title { color: #4a4a8a; font-size: 16px; margin: 6px 0 10px; }
+  .record-cards {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px; margin-bottom: 22px;
+  }
+  .record-card {
+    background: linear-gradient(160deg, #fff, #eef0fe);
+    border: 2px solid #e0e0f5; border-radius: 14px; padding: 14px 10px; text-align: center;
+  }
+  .rec-title { font-size: 12px; color: #6a6a9a; margin-bottom: 6px; min-height: 30px; display: flex; align-items: center; justify-content: center; }
+  .rec-val { font-size: 26px; font-weight: bold; color: #4a4a8a; }
+  .rec-val .unit { font-size: 13px; color: #888; font-weight: normal; margin-left: 2px; }
+  .record-empty {
+    grid-column: 1 / -1; text-align: center; color: #999; padding: 24px 10px;
+    background: #f7f7ff; border-radius: 14px; line-height: 1.6;
+  }
+  .home-menu { display: grid; grid-template-columns: 3fr 1fr; gap: 12px; }
+  .menu-card {
+    border: none; cursor: pointer; border-radius: 18px; padding: 26px 12px; color: #fff;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+    box-shadow: 0 8px 20px rgba(0,0,0,.18); transition: transform .15s;
+  }
+  .menu-card:hover { transform: translateY(-3px); }
+  .menu-card .menu-icon { font-size: 38px; }
+  .menu-card .menu-label { font-size: 18px; font-weight: bold; }
+  .menu-card.play   { background: linear-gradient(135deg, #ff9a56, #ff6a88); }
+  .menu-card.config { background: linear-gradient(135deg, #7f7fd5, #86a8e7); }
+  .menu-card.config .menu-icon { font-size: 30px; }
+  .menu-card.config .menu-label { font-size: 14px; }
+
+  /* 상단 뒤로가기 */
+  .home-back { background: none; border: none; color: #667eea; font-size: 15px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
+
+  /* 앱 설정 - 소리 */
+  .volume-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .volume-row input[type="range"] { flex: 1; min-width: 140px; accent-color: #667eea; }
+  #volumeLabel { font-weight: bold; color: #4a4a8a; min-width: 46px; text-align: right; }
+  .mute-btn {
+    padding: 9px 14px; border: 2px solid #d4d4f0; border-radius: 10px;
+    background: #fff; color: #4a4a8a; font-weight: bold; cursor: pointer; font-size: 14px;
+  }
+  .mute-btn.on { background: #ffcdd2; border-color: #f44336; color: #c62828; }
+
+  /* 업적 모달 */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 1100; background: rgba(0,0,0,.45);
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-card {
+    background: #fff; border-radius: 20px; padding: 26px 22px;
+    width: 380px; max-width: 92vw; max-height: 80vh; overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,.4);
+  }
+  .modal-card h2 { text-align: center; color: #4a4a8a; margin-bottom: 12px; }
+  .ach-list { display: flex; flex-direction: column; gap: 10px; margin: 14px 0 18px; }
+  .ach-item { display: flex; align-items: center; gap: 12px; background: #f7f7ff; border-radius: 12px; padding: 12px 14px; }
+  .ach-item.locked { opacity: .55; }
+  .ach-item .ach-ico {
+    width: 40px; height: 40px; border-radius: 50%; background: #eef0fe;
+    display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;
+  }
+  .ach-item small { color: #888; }
+  .ach-item { cursor: pointer; }
+  .ach-item.done { opacity: 1; }
+  .ach-item.done .ach-ico { background: #fff3c4; }
+  .ach-group { font-weight: bold; color: #4a4a8a; font-size: 14px; margin: 12px 0 4px; }
+  .ach-prog { margin-top: 6px; font-size: 12px; color: #666; }
+  .ach-bar { margin-top: 5px; height: 7px; background: #e0e0f5; border-radius: 4px; overflow: hidden; }
+  .ach-bar > div { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 4px; }
+  /* 진행도 바 + x / y */
+  .ach-prog2 { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+  .ach-prog2 .ach-bar { flex: 1; margin-top: 0; }
+  .ach-xy { font-size: 12px; font-weight: bold; color: #4a4a8a; white-space: nowrap; }
+  /* 클리어 알림 메시지 */
+  .ach-clear-banner { background: #fff3c4; color: #8a6d00; border-radius: 10px; padding: 11px; text-align: center; font-weight: bold; margin-bottom: 8px; }
+  /* 완료한 업적(접이식) 헤더 */
+  .ach-fold-head { display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: bold; color: #4a4a8a; font-size: 14px; margin: 14px 0 6px; padding: 9px 12px; background: #f0f0fa; border-radius: 10px; }
+  /* 업적 버튼 알림 배지 (빨간 동그라미 + 흰 !) */
+  .ach-badge {
+    position: absolute; top: -9px; right: -9px;
+    width: 24px; height: 24px; border-radius: 50%;
+    background: #e53935; color: #fff; font-weight: bold; font-size: 15px;
+    display: none; align-items: center; justify-content: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,.35);
+  }
+
+  /* 게임 종료 화면 */
+  .gameover-overlay {
+    position: fixed; inset: 0; z-index: 3000;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; text-align: center;
+  }
+  .gameover-emoji { font-size: 76px; margin-bottom: 14px; animation: go-pop .45s ease; }
+  .gameover-text { font-size: 46px; font-weight: bold; animation: go-pop .45s ease; }
+  .gameover-sub { margin-top: 14px; font-size: 15px; opacity: .85; }
+  @keyframes go-pop { 0% { transform: scale(.6); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+  /* ===================== 튜토리얼 코치 오버레이 ===================== */
+  .coach-blocker { position: fixed; inset: 0; z-index: 2000; background: transparent; opacity: 0; transition: opacity .3s ease; }
+  .coach-spot { position: fixed; z-index: 2001; box-shadow: 0 0 0 9999px rgba(0,0,0,0.62); pointer-events: none; opacity: 0; transition: opacity .3s ease, left .25s ease, top .25s ease, width .25s ease, height .25s ease; }
+  .coach-box {
+    position: fixed; z-index: 2003; background: #fff; color: #333;
+    border-radius: 14px; padding: 14px 16px; max-width: 280px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.45); font-size: 14px; line-height: 1.55;
+    opacity: 0; transition: opacity .3s ease, left .25s ease, top .25s ease;
+  }
+  @keyframes coach-pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.07); } }
+  .coach-pulse { animation: coach-pulse 1s ease-in-out infinite; }
+  .coach-box b { color: #4a4a8a; }
+  .coach-box .coach-next { margin-top: 8px; font-size: 12px; color: #999; }
+  .coach-box-down::before { content:''; position:absolute; top:-9px; left:50%; transform:translateX(-50%); border:9px solid transparent; border-bottom-color:#fff; border-top:none; }
+  .coach-box-up::before { content:''; position:absolute; bottom:-9px; left:50%; transform:translateX(-50%); border:9px solid transparent; border-top-color:#fff; border-bottom:none; }
+
+  /* ===== 결과 화면 ===== */
+  .result-screen { text-align: center; }
+  .result-emoji {
+    font-size: 80px;
+    margin: 10px 0 5px;
+  }
+  .result-score {
+    font-size: 56px;
+    font-weight: bold;
+    color: #4a4a8a;
+    margin: 15px 0 5px;
+    font-variant-numeric: tabular-nums;
+  }
+  .result-percent {
+    font-size: 28px;
+    color: #6a4c93;
+    margin-bottom: 20px;
+    font-weight: bold;
+  }
+  .result-review {
+    background: #f7f7ff;
+    border-radius: 12px;
+    padding: 15px 20px;
+    margin: 20px 0;
+    text-align: left;
+  }
+  .result-review .review-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px dashed #ddd;
+    font-size: 18px;
+  }
+  .result-review .review-item:last-child { border-bottom: none; }
+  .review-mark { font-size: 22px; flex-shrink: 0; width: 30px; }
+  .review-eq { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .review-eq .frac { font-size: 18px; }
+  .review-eq .frac .num { padding: 0 4px 2px; border-bottom: 1.5px solid #333; }
+  .review-eq .frac .den { padding: 2px 4px 0; }
+  .review-eq .op { font-size: 20px; }
+  .review-eq .num-text { font-size: 20px; }
+  .review-eq .ineq-sym { font-size: 20px; }
+  .review-eq .expr { font-size: 22px; gap: 2px; }
+  .review-eq .expr sup { font-size: 0.6em; vertical-align: super; line-height: 1; }
+  /* 결과 요약 안 분수 지수도 깔끔하게 */
+  .review-eq .expr .exp-frac-sup {
+    font-size: 0.5em;
+    vertical-align: super;
+    line-height: 1;
+    margin-left: 1px;
+  }
+  .review-eq .expr .exp-frac-sup .exp-frac-num { padding: 0 3px 1px; border-bottom: 1px solid currentColor; }
+  .review-eq .expr .exp-frac-sup .exp-frac-den { padding: 1px 3px 0; }
+
+  /* ===== 모드 선택 ===== */
+  .mode-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .mode-option {
+    background: #fff;
+    border: 2px solid #d4d4f0;
+    border-radius: 10px;
+    padding: 16px 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .mode-option:hover { background: #f0f0fa; }
+  .mode-option.active {
+    border-color: #667eea;
+    background: #eef0fe;
+  }
+  .mode-option .mode-title {
+    font-weight: bold;
+    color: #4a4a8a;
+    font-size: 16px;
+    margin-bottom: 6px;
+  }
+  .mode-option .mode-desc {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.4;
+  }
+  .result-best {
+    font-size: 22px;
+    color: #6a4c93;
+    margin: 10px 0 20px;
+    font-weight: bold;
+  }
+  .result-best.new-best { color: #e91e63; }
+
+  /* ===== 수열 게임 화면 ===== */
+  .game-desc {
+    background: #f7f7ff;
+    padding: 18px 20px;
+    border-radius: 10px;
+    margin: 14px 0;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #4a4a8a;
+    text-align: center;
+  }
+  .countdown-big {
+    font-size: 90px;
+    font-weight: bold;
+    color: #667eea;
+    text-align: center;
+    margin: 20px 0 10px;
+    font-variant-numeric: tabular-nums;
+  }
+  .game-hint {
+    text-align: center;
+    color: #666;
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+  .game-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    margin: 14px auto;
+    max-width: 420px;
+  }
+  .game-cell {
+    aspect-ratio: 1;
+    background: #eef0fe;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: #4a4a8a;
+    transition: all 0.12s;
+    user-select: none;
+  }
+  .game-cell:hover { background: #d4d4f0; }
+  .game-cell.selected { background: #667eea; color: #fff; border-color: #4a4a8a; }
+  .game-cell.flash-ok { background: #c8e6c9 !important; color: #2e7d32; }
+  .game-cell.flash-no { background: #ffcdd2 !important; color: #c62828; }
+  .game-toast {
+    text-align: center;
+    min-height: 28px;
+    font-size: 15px;
+    font-weight: bold;
+    margin-top: 6px;
+  }
+
+  /* ===== 해설 버튼 (결과 리뷰 항목) ===== */
+  .review-item .explain-btn {
+    margin-left: auto;
+    padding: 5px 12px;
+    background: #667eea;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .review-item .explain-btn:hover { background: #5567c8; }
+
+  /* ===== 해설 화면 ===== */
+  .explanation { background: #fff; border-radius: 12px; }
+  .exp-section { margin-bottom: 18px; }
+  .exp-label {
+    font-weight: bold;
+    color: #4a4a8a;
+    font-size: 17px;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #d4d4f0;
+  }
+  .exp-problem {
+    background: #f7f7ff;
+    padding: 16px 18px;
+    border-radius: 10px;
+    text-align: center;
+    display: flex; align-items: center; justify-content: center;
+    flex-wrap: wrap; gap: 6px;
+  }
+  .exp-formula {
+    background: #fafaff;
+    border-left: 3px solid #667eea;
+    padding: 14px 18px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    min-height: 40px;
+  }
+  .exp-formula.vertical {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .exp-formula.vertical .line {
+    display: flex; align-items: center; gap: 4px; flex-wrap: wrap; justify-content: center;
+  }
+  .exp-answer {
+    background: #c8e6c9;
+    color: #2e7d32;
+    padding: 14px 18px;
+    border-radius: 10px;
+    text-align: center;
+    font-weight: bold;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    flex-wrap: wrap;
+  }
+  /* 해설 안 수식 사이즈 통일 */
+  .exp-problem .frac, .exp-formula .frac, .exp-answer .frac { font-size: 20px; }
+  .exp-problem .frac .num, .exp-formula .frac .num, .exp-answer .frac .num { padding: 0 4px 2px; border-bottom: 1.5px solid currentColor; }
+  .exp-problem .frac .den, .exp-formula .frac .den, .exp-answer .frac .den { padding: 2px 4px 0; }
+  .exp-problem .op, .exp-formula .op, .exp-answer .op { font-size: 20px; }
+  .exp-problem .num-text, .exp-formula .num-text, .exp-answer .num-text { font-size: 20px; }
+  .exp-problem .ineq-sym, .exp-formula .ineq-sym, .exp-answer .ineq-sym { font-size: 20px; }
+  .exp-problem .expr, .exp-formula .expr, .exp-answer .expr { font-size: 20px; gap: 2px; }
+  .exp-problem .expr sup, .exp-formula .expr sup, .exp-answer .expr sup { font-size: 0.6em; }
+  .exp-problem .expr .exp-frac-sup, .exp-formula .expr .exp-frac-sup, .exp-answer .expr .exp-frac-sup { font-size: 0.5em; }
+
+  /* ===================== 모바일(스마트폰) 대응 ===================== */
+  @media (max-width: 600px) {
+    body { padding: 8px; align-items: flex-start; }
+    .container { padding: 18px 14px; border-radius: 14px; }
+    h1 { font-size: 22px; margin-bottom: 18px; }
+    h2 { font-size: 15px; }
+
+    /* 설정 화면 */
+    .settings-screen .setting-block { padding: 14px; margin-bottom: 14px; }
+    .settings-screen select,
+    .settings-screen input[type="number"] { font-size: 15px; padding: 9px 12px; }
+    .mode-grid { gap: 8px; }
+    .mode-option { padding: 12px 6px; }
+    .mode-option .mode-title { font-size: 14px; }
+    .time-input-row { gap: 8px; }
+    .time-input-row .preset, .time-input-row .preset-ta { padding: 8px 12px; font-size: 13px; }
+    .timer-style-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .start-btn { padding: 14px 20px; font-size: 17px; width: 100%; }
+
+    /* 퀴즈 화면 */
+    .quiz-screen .top-bar { font-size: 13px; }
+    .stats { gap: 12px; font-size: 13px; }
+    .problem { font-size: 30px; min-height: 88px; margin: 16px 0; gap: 10px; }
+    .frac { font-size: 28px; }
+    .op, .num-text, .expr, .ineq-sym { font-size: 28px; }
+    .arrow { font-size: 24px; }
+    .options { gap: 10px; }
+    .option { padding: 14px; font-size: 22px; min-height: 58px; }
+    .option .num-text, .option .expr { font-size: 22px; }
+    .option .frac { font-size: 20px; }
+    .next-btn { padding: 12px 24px; font-size: 16px; }
+    .feedback { font-size: 18px; }
+
+    /* 타이머 */
+    .timer-number { font-size: 28px; }
+    .timer-area.style-both .timer-number { font-size: 16px; }
+    .timer-circle { width: 64px; height: 64px; }
+    .timer-circle .inner { width: 52px; height: 52px; font-size: 20px; }
+
+    /* 결과 / 카운트다운 / 게임 */
+    .result-score { font-size: 40px; }
+    .countdown-big { font-size: 64px; }
+    .game-grid { gap: 5px; }
+    .game-cell { font-size: 16px; border-radius: 6px; }
+    .game-hint, .game-toast { font-size: 13px; }
+
+    /* 로딩 / 입장 / 로그인 오버레이 */
+    #loadingScreen .load-emojis { font-size: 42px; letter-spacing: 8px; }
+    #loadingScreen .load-title { font-size: 19px; }
+    .entrance-card { padding: 34px 24px; max-width: 90vw; }
+    .entrance-card .e-icon { font-size: 52px; }
+    .entrance-card h1 { font-size: 27px; }
+    .entrance-card .e-sub { font-size: 14px; }
+    .enter-btn { padding: 14px 32px; font-size: 16px; }
+    .float-deco { font-size: 32px; }
+    .auth-card { padding: 32px 22px; width: 88vw; }
+    .auth-card .e-icon { font-size: 48px; }
+    .auth-card h1 { font-size: 25px; }
+    .auth-card .e-sub { font-size: 14px; margin-bottom: 20px; }
+    .auth-input { font-size: 15px; padding: 12px 14px; }
+    .auth-btn { font-size: 15px; padding: 13px; }
+
+    /* 사용자 배지 */
+    .user-badge { top: 8px; right: 8px; font-size: 11px; padding: 6px 10px; }
+
+    /* 홈 화면 */
+    .home-profile { padding: 12px 14px; gap: 10px; }
+    .profile-avatar { width: 50px; height: 50px; font-size: 26px; }
+    .profile-name { font-size: 17px; }
+    .profile-ach { font-size: 12px; padding: 7px 10px; }
+    .record-cards { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .rec-val { font-size: 22px; }
+    .menu-card { padding: 20px 8px; }
+    .menu-card .menu-icon { font-size: 32px; }
+    .menu-card .menu-label { font-size: 16px; }
+    .menu-card.config .menu-label { font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== 로딩 화면 ===================== -->
+<div class="app-overlay" id="loadingScreen">
+  <div class="load-emojis"><span>➗</span><span>✖️</span><span>➕</span><span>➖</span></div>
+  <div class="load-title">수학 문제 만들기</div>
+  <div class="load-bar"><div id="loadBarFill"></div></div>
+  <div class="load-text" id="loadText">불러오는 중...</div>
+</div>
+
+<!-- ===================== 입장 화면 ===================== -->
+<div class="app-overlay gone" id="entranceScreen">
+  <span class="float-deco" style="top:14%; left:12%;">π</span>
+  <span class="float-deco" style="top:22%; right:14%; animation-delay:1.5s;">∑</span>
+  <span class="float-deco" style="bottom:18%; left:16%; animation-delay:.8s;">√</span>
+  <span class="float-deco" style="bottom:22%; right:15%; animation-delay:2.2s;">∞</span>
+  <div class="entrance-card">
+    <div class="e-icon">🧮</div>
+    <h1>수학 문제 만들기</h1>
+    <div class="e-sub">단원과 모드를 골라<br>나만의 수학 퀴즈에 도전해 보세요!</div>
+    <button class="enter-btn" id="entranceStartBtn" onclick="enterMain()">시작하기 ▶</button>
+    <div class="e-status" id="entranceStatus"></div>
+  </div>
+</div>
+
+<!-- ===================== 로그인 화면 ===================== -->
+<div class="app-overlay gone" id="loginScreen">
+  <div class="auth-card">
+
+    <!-- 선택 -->
+    <div id="authChoice">
+      <div class="e-icon">🔐</div>
+      <h1>로그인</h1>
+      <div class="e-sub">어떻게 시작할까요?</div>
+      <button class="auth-btn" onclick="showAuthView('login')">로그인</button>
+      <button class="auth-btn" onclick="showAuthView('signup')">회원가입</button>
+      <button class="auth-btn ghost" onclick="playAsGuest()">계정 없이 실행</button>
+      <div class="auth-msg ok" id="choiceMsg"></div>
+    </div>
+
+    <!-- 로그인 폼 -->
+    <div id="authLogin" style="display:none;">
+      <h1>로그인</h1>
+      <input class="auth-input" id="loginId" placeholder="아이디" autocomplete="off" onkeydown="onEnter(event, 'loginPw')">
+      <input class="auth-input" id="loginPw" type="password" placeholder="비밀번호" autocomplete="off" onkeydown="onEnter(event, doLogin)">
+      <div class="auth-msg err" id="loginMsg"></div>
+      <button class="auth-btn" onclick="doLogin()">로그인</button>
+      <button class="auth-btn ghost" onclick="showAuthView('choice')">← 뒤로</button>
+    </div>
+
+    <!-- 회원가입 폼 -->
+    <div id="authSignup" style="display:none;">
+      <h1>회원가입</h1>
+      <input class="auth-input" id="signupId" placeholder="아이디 (영문/숫자)" autocomplete="off" onkeydown="onEnter(event, 'signupPw')">
+      <input class="auth-input" id="signupPw" type="password" placeholder="비밀번호 (영문/숫자)" autocomplete="off" onkeydown="onEnter(event, 'signupPw2')">
+      <input class="auth-input" id="signupPw2" type="password" placeholder="비밀번호 확인 (다시 입력)" autocomplete="off" onkeydown="onEnter(event, 'signupName')">
+      <input class="auth-input" id="signupName" placeholder="이름" autocomplete="off" onkeydown="onEnter(event, doSignup)">
+      <div class="auth-msg err" id="signupMsg"></div>
+      <button class="auth-btn" onclick="doSignup()">가입하기</button>
+      <button class="auth-btn ghost" onclick="showAuthView('choice')">← 뒤로</button>
+    </div>
+
+  </div>
+</div>
+
+<div id="userBadge" class="user-badge" style="display:none;"></div>
+
+<!-- ===================== 게임 종료 화면 ===================== -->
+<div class="gameover-overlay hidden" id="gameOverScreen">
+  <div>
+    <div class="gameover-emoji">🎉</div>
+    <div class="gameover-text">게임 종료!</div>
+    <div class="gameover-sub">결과를 불러오는 중...</div>
+  </div>
+</div>
+
+<!-- ===================== 업적 모달 ===================== -->
+<div class="modal-overlay hidden" id="achievementsModal" onclick="closeAchievements(event)">
+  <div class="modal-card">
+    <h2>🏆 업적</h2>
+    <p style="text-align:center; color:#888; font-size:13px; margin-bottom:4px;">업적을 누르면 진행 상황을 볼 수 있어요.</p>
+    <div class="ach-list" id="achList"></div>
+    <button class="auth-btn" style="background:#667eea; color:#fff;" onclick="closeAchievements()">닫기</button>
+  </div>
+</div>
+
+<div class="container">
+  <!-- ===================== 메인(홈) 화면 ===================== -->
+  <div class="home-screen" id="homeScreen">
+    <h1>🧮 수학 문제 만들기</h1>
+
+    <div class="home-profile" onclick="openAchievements()">
+      <div class="profile-avatar">🙂</div>
+      <div class="profile-info">
+        <div class="profile-name" id="profileName">이름</div>
+        <div class="profile-id" id="profileId">@아이디</div>
+      </div>
+      <div class="profile-ach">🏆 업적<span class="ach-badge" id="achBadge">!</span></div>
+    </div>
+
+    <h2 class="home-section-title">🏅 나의 최고 기록</h2>
+    <div class="record-cards" id="recordCards"></div>
+
+    <div class="home-menu">
+      <button class="menu-card play" onclick="goGamePlay()">
+        <div class="menu-icon">🎮</div>
+        <div class="menu-label">게임 플레이</div>
+      </button>
+      <button class="menu-card config" onclick="goAppSettings()">
+        <div class="menu-icon">⚙️</div>
+        <div class="menu-label">설정</div>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===================== 게임 설정 화면 ===================== -->
+  <div class="settings-screen hidden" id="settingsScreen">
+    <button class="home-back" onclick="goHome()">← 홈</button>
+    <h1>🎮 게임 설정</h1>
+
+    <div class="setting-block">
+      <h2>📚 문제 주제 (단원)</h2>
+      <select id="topicSelect">
+        <option value="정수와 유리수">정수와 유리수</option>
+        <option value="일차방정식">일차방정식</option>
+        <option value="지수">지수</option>
+        <option value="지수법칙(중2)">지수법칙(중2)</option>
+        <option value="지수법칙(고2)">지수법칙(고2)</option>
+        <option value="등차수열">등차수열</option>
+        <option value="등비수열">등비수열</option>
+        <option value="수열의 일반항">수열의 일반항</option>
+      </select>
+    </div>
+
+    <div class="setting-block">
+      <h2>🎮 퀴즈 모드</h2>
+      <div class="mode-grid">
+        <div class="mode-option active" data-mode="fixed5">
+          <div class="mode-title">5문제 도전</div>
+        </div>
+        <div class="mode-option" data-mode="timeattack">
+          <div class="mode-title">타임어택</div>
+        </div>
+        <div class="mode-option" data-mode="survival">
+          <div class="mode-title">서바이벌</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="setting-block" id="timeLimitBlock">
+      <h2 id="timeLimitTitle">⏱ 제한시간</h2>
+      <div class="time-input-row">
+        <button class="preset active" data-sec="40">40초</button>
+        <button class="preset" data-sec="60">60초</button>
+        <button class="preset" data-sec="90">90초</button>
+        <button class="preset" data-sec="0">제한시간 없음</button>
+      </div>
+    </div>
+
+    <button class="start-btn" onclick="startQuiz()">퀴즈 시작 ▶</button>
+  </div>
+
+  <!-- ===================== 설정(앱) 화면 ===================== -->
+  <div class="app-settings-screen hidden" id="appSettingsScreen">
+    <button class="home-back" onclick="goHome()">← 홈</button>
+    <h1>⚙️ 설정</h1>
+
+    <div class="setting-block">
+      <h2>⏳ 시간이 흘러가는 모습</h2>
+      <div class="timer-style-grid">
+        <div class="timer-style-option active" data-style="both">
+          <div class="label">진행 바 + 숫자</div>
+          <div class="preview" style="flex-direction:column; gap:4px;">
+            <div class="preview-bar" style="width:80%;"><div></div></div>
+            <div style="font-size:14px;">9</div>
+          </div>
+        </div>
+        <div class="timer-style-option" data-style="circle">
+          <div class="label">원형 게이지</div>
+          <div class="preview"><div class="preview-circle"><span>9</span></div></div>
+        </div>
+        <div class="timer-style-option" data-style="hidden">
+          <div class="label">숨김</div>
+          <div class="preview" style="color:#aaa;">표시 안 함</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="setting-block">
+      <h2>🔊 소리 크기</h2>
+      <div class="volume-row">
+        <input type="range" id="volumeSlider" min="0" max="100" value="100" oninput="onVolumeChange(this.value)">
+        <span id="volumeLabel">100%</span>
+        <button class="mute-btn" id="muteBtn" onclick="toggleMute()">🔊 음소거</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== 퀴즈 화면 ===================== -->
+  <div class="quiz-screen hidden" id="quizScreen">
+    <div class="top-bar">
+      <button class="back-btn" onclick="backToSettings()">← 뒤로</button>
+      <div class="stats">
+        <div>문제 <span id="problemNum">1</span> / <span id="problemTotal">5</span></div>
+      </div>
+    </div>
+
+    <div class="timer-area" id="timerArea">
+      <div class="timer-bar"><div class="timer-fill" id="timerFill" style="width:100%;"></div></div>
+      <div class="timer-number" id="timerNumber">15</div>
+      <div class="timer-circle" id="timerCircle"><div class="inner" id="timerCircleNum">15</div></div>
+    </div>
+
+    <div class="problem" id="problem"></div>
+    <div class="options" id="options"></div>
+    <div class="feedback" id="feedback"></div>
+    <button class="next-btn" id="nextBtn" onclick="nextProblem()">다음 문제 →</button>
+  </div>
+
+  <!-- ===================== 결과 화면 ===================== -->
+  <div class="result-screen hidden" id="resultScreen">
+    <div class="result-score" id="resultScore">5 / 5</div>
+    <div class="result-best hidden" id="resultBest"></div>
+    <div class="result-review" id="resultReview"></div>
+    <button class="start-btn" onclick="goHome()">처음으로</button>
+  </div>
+
+  <!-- ===================== 카운트다운 화면 (수열 게임용) ===================== -->
+  <div class="countdown-screen hidden" id="countdownScreen">
+    <h2 style="text-align:center; color:#4a4a8a; margin-bottom:14px;" id="countdownTitle">곧 시작합니다</h2>
+    <div class="game-desc" id="gameDesc"></div>
+    <div class="countdown-big" id="countdownBig">3</div>
+    <button class="back-btn" style="margin: 14px auto 0; display:block;" onclick="cancelCountdown()">취소</button>
+  </div>
+
+  <!-- ===================== 수열 게임 화면 ===================== -->
+  <div class="game-screen hidden" id="gameScreen">
+    <div class="top-bar">
+      <button class="back-btn" onclick="exitGame()">← 뒤로</button>
+      <div class="stats">
+        <div>맞춘 수: <span id="gameScore">0</span></div>
+      </div>
+    </div>
+    <div class="timer-area style-both" id="gameTimerArea">
+      <div class="timer-bar"><div class="timer-fill" id="gameTimerFill" style="width:100%;"></div></div>
+      <div class="timer-number" id="gameTimerNumber">30</div>
+    </div>
+    <div class="game-hint" id="gameHint"></div>
+    <div class="game-grid" id="gameGrid"></div>
+    <div class="game-toast" id="gameToast"></div>
+  </div>
+
+  <!-- ===================== 해설 화면 ===================== -->
+  <div class="explanation-screen hidden" id="explanationScreen">
+    <h2 style="text-align:center; margin-bottom:18px; color:#4a4a8a;">📖 문제 해설</h2>
+    <div id="explanationContent"></div>
+    <button class="start-btn" onclick="returnFromExplanation()">← 결과로 돌아가기</button>
+  </div>
+</div>
+
+<script>
+// === 문제 조건 (프로젝트 파일.xlsx 의 각 시트 = 단원) ===
+// 각 단원은 시트명을 그대로 사용하며, 시트의 조건 안에서 무작위로 생성됨
+const problemSets = {
+  "정수와 유리수": {
+    numerators: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    denominators: [2, 3, 4, 5, 6],
+    operators: ['+', '-', '×', '÷'],
+    generate: () => generateFractionProblem()
+  },
+  "일차방정식": {
+    xCoef: [-3, -2, -1, 0, 1, 2, 3],
+    constants: [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5],
+    generate: () => generateLinearEquation()
+  },
+  "지수": {
+    bases: [1, 2, 3, 4, 5, 6],
+    exps: [0, 2, 3, 4],
+    generate: () => generateExponent()
+  },
+  "지수법칙(중2)": {
+    bases: [2, 3, 4, 5, 'a', 'b'],
+    exps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    operators: ['×', '÷'],
+    generate: () => generateExpLawMS()
+  },
+  "지수법칙(고2)": {
+    simpleBases: [2, 3, 4, 5, 'a', 'b'],
+    fracNumerators: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    fracDenominators: [2, 3, 4, 5, 6],
+    intExps: [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5],
+    operators: ['×', '÷'],
+    generate: () => generateExpLawHS()
+  },
+  "등차수열": {
+    a1Range: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    dRange: [-3, -2, -1, 1, 2, 3],
+    termCount: 4,
+    generate: () => generateArithmeticSeq()
+  },
+  "등비수열": {
+    a1Range: [1, 2, 3, 4, 5],
+    rRange: [2, 3],
+    termCount: 4,
+    generate: () => generateGeometricSeq()
+  },
+  "수열의 일반항": {
+    // 등차: a1 + (n-1)d 또는 등비: a1 × r^(n-1)
+    arithA1: [-3, -2, -1, 1, 2, 3, 4, 5],
+    arithD: [1, 2, 3, 4, 5],
+    geoA1: [1, 2, 3, 4, 5],
+    geoR: [2, 3],
+    kRange: [3, 4, 5, 6],
+    generate: () => generateGeneralTerm()
+  }
+};
+
+// 사용자 설정
+let userSettings = {
+  topic: "정수와 유리수",
+  timeLimit: 15,
+  timerStyle: 'both',
+  mode: 'fixed5'
+};
+const TOTAL_PROBLEMS = 5;
+const SURV_START = 30;       // 서바이벌: 시작 제한시간
+const SURV_DEC = 2;          // 서바이벌: 매 문제 줄어드는 초
+const SURV_BEST_KEY = 'mathQuiz_서바이벌_best';
+const TA_BEST_KEY = (sec) => `mathQuiz_타임어택_best_${sec}`;
+const SURV_AUTO_DELAY = 1000;  // 서바이벌: 정답 확인 후 자동 진행까지 ms
+const TA_FEEDBACK_DELAY = 1000; // 타임어택: 정답 확인 화면 ms
+let problemIndex = 0;
+
+let currentProblem = null;
+let timerInterval = null;
+let sessionInterval = null;   // 타임어택용 세션 타이머
+let sessionEndTime = 0;       // 타임어택 세션 종료 시각 (ms)
+let correctCount = 0;
+let totalCount = 0;
+let answered = false;
+let answerHistory = [];
+let gameEnded = false; // 서바이벌용: 오답/시간초과 발생
+let autoAdvanceTimer = null;
+let autoAdvanceCountdown = null;
+let firstEquationCorrect = null; // 일차방정식 첫 문제 정답 여부 (true/false/null)
+
+// ===== 설정 화면 이벤트 =====
+function refreshSettingsVisibility() {
+  const activeMode = document.querySelector('.mode-option.active');
+  const mode = activeMode ? activeMode.dataset.mode : 'fixed5';
+  // 서바이벌은 시간제한이 없으므로 제한시간 블록 숨김
+  const block = document.getElementById('timeLimitBlock');
+  if (block) block.style.display = (mode === 'survival') ? 'none' : '';
+  const title = document.getElementById('timeLimitTitle');
+  if (title) title.textContent = '⏱ 전체 제한시간';
+}
+
+document.querySelectorAll('.preset').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.preset').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    refreshSettingsVisibility();
+  });
+});
+
+document.querySelectorAll('.preset-ta').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.preset-ta').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+document.querySelectorAll('.timer-style-option').forEach(opt => {
+  opt.addEventListener('click', () => {
+    document.querySelectorAll('.timer-style-option').forEach(o => o.classList.remove('active'));
+    opt.classList.add('active');
+    userSettings.timerStyle = opt.dataset.style;
+    saveAppConfig();
+  });
+});
+
+document.querySelectorAll('.mode-option').forEach(opt => {
+  opt.addEventListener('click', () => {
+    document.querySelectorAll('.mode-option').forEach(o => o.classList.remove('active'));
+    opt.classList.add('active');
+    refreshSettingsVisibility();
+  });
+});
+
+// 단원별 한 줄 설명 (카운트다운 화면에 표시)
+const TOPIC_DESC = {
+  '정수와 유리수': '주어진 식을 계산하세요.',
+  '일차방정식': 'x의 값으로 알맞은 것을 선택하세요.',
+  '지수': '주어진 식을 계산하세요.',
+  '지수법칙(중2)': '주어진 식을 계산하세요.',
+  '지수법칙(고2)': '주어진 식을 계산하세요.',
+  '등차수열': '?에 들어갈 값을 선택하세요.',
+  '등비수열': '?에 들어갈 값을 선택하세요.',
+  '수열의 일반항': '일반항으로 알맞은 것을 선택하세요.'
+};
+const MODE_NAME = { fixed5: '5문제 도전', timeattack: '타임어택', survival: '서바이벌' };
+let preCountdownInterval = null;
+let tutorialActive = false;     // 튜토리얼 진행 중 여부
+
+function startQuiz() {
+  userSettings.mode = document.querySelector('.mode-option.active').dataset.mode;
+  userSettings.topic = document.getElementById('topicSelect').value;
+  // 제한시간 (fixed5: 문제당 / 타임어택: 전체 / 서바이벌: 사용 안 함)
+  const activePreset = document.querySelector('.preset.active');
+  userSettings.timeLimit = parseInt(activePreset.dataset.sec, 10);
+  // 타임어택은 시간제한이 필요 → '제한시간 없음' 선택 시 60초로
+  if (userSettings.mode === 'timeattack' && userSettings.timeLimit === 0) userSettings.timeLimit = 60;
+
+  // 효과 타이머 모양: 설정값 사용(단, 5문제+제한없음이면 숨김)
+  let effStyle = userSettings.timerStyle || 'both';
+  if (userSettings.mode === 'fixed5' && userSettings.timeLimit === 0) effStyle = 'hidden';
+
+  // 튜토리얼 투어 직후 첫 게임이면 문제풀이 코칭 적용 (수열 격자 게임은 제외)
+  const coachThisGame = tutFirstGamePending; tutFirstGamePending = false;
+
+  // 수열(등차/등비) + 타임어택 → 격자 게임으로 전환 (자체 카운트다운 보유)
+  if (userSettings.mode === 'timeattack' &&
+      (userSettings.topic === '등차수열' || userSettings.topic === '등비수열')) {
+    tutGameCoaching = false;
+    startCountdownThenGame(userSettings.topic, userSettings.timeLimit);
+    return;
+  }
+  tutGameCoaching = coachThisGame;
+
+  // 모든 모드: 단원 설명 + 3초 카운트다운 후 시작
+  const desc = TOPIC_DESC[userSettings.topic] || '문제를 풀어 보세요!';
+  let timeInfo;
+  if (userSettings.mode === 'survival') timeInfo = '틀리면 종료! 최대한 많이 맞혀 보세요.';
+  else if (userSettings.timeLimit === 0) timeInfo = '제한시간 없음';
+  else timeInfo = (userSettings.mode === 'fixed5') ? `문제당 ${userSettings.timeLimit}초` : `전체 ${userSettings.timeLimit}초`;
+  const title = `${userSettings.topic} · ${MODE_NAME[userSettings.mode] || ''}`;
+  runPreCountdown(title, `<b>${desc}</b><br>${timeInfo}`, () => beginQuiz(effStyle));
+}
+
+// 일반 퀴즈용 3초 카운트다운
+function runPreCountdown(title, descHTML, onDone) {
+  document.getElementById('settingsScreen').classList.add('hidden');
+  document.getElementById('resultScreen').classList.add('hidden');
+  document.getElementById('quizScreen').classList.add('hidden');
+  document.getElementById('countdownTitle').textContent = title;
+  document.getElementById('gameDesc').innerHTML = descHTML;
+  document.getElementById('countdownScreen').classList.remove('hidden');
+
+  let count = 3;
+  const big = document.getElementById('countdownBig');
+  big.textContent = count;
+  if (preCountdownInterval) clearInterval(preCountdownInterval);
+  preCountdownInterval = setInterval(() => {
+    count--;
+    if (count > 0) { big.textContent = count; }
+    else {
+      clearInterval(preCountdownInterval); preCountdownInterval = null;
+      document.getElementById('countdownScreen').classList.add('hidden');
+      onDone();
+    }
+  }, 1000);
+}
+
+function beginQuiz(effStyle) {
+  effStyle = effStyle || (userSettings.timerStyle || 'both');
+  document.getElementById('timerArea').className = 'timer-area style-' + effStyle;
+
+  document.getElementById('settingsScreen').classList.add('hidden');
+  document.getElementById('countdownScreen').classList.add('hidden');
+  document.getElementById('resultScreen').classList.add('hidden');
+  document.getElementById('quizScreen').classList.remove('hidden');
+
+  correctCount = 0;
+  totalCount = 0;
+  problemIndex = 0;
+  answerHistory = [];
+  gameEnded = false;
+  firstEquationCorrect = null;
+
+  if (userSettings.mode === 'fixed5') {
+    document.getElementById('problemTotal').textContent = TOTAL_PROBLEMS;
+  } else {
+    document.getElementById('problemTotal').textContent = '∞';
+  }
+
+  // 튜토리얼 첫 게임이면 모드 설명 생략(1번 정답 강조로 대체) + 본 것으로 표시
+  if (tutGameCoaching) { markModeSeen(userSettings.mode); quizGo(); return; }
+  // 모드 첫 진행이면 설명 먼저(탭하면 시작)
+  if (!modeSeen(userSettings.mode) && MODE_INTRO[userSettings.mode]) {
+    markModeSeen(userSettings.mode);
+    coachExplain(null, MODE_INTRO[userSettings.mode], quizGo);
+    return;
+  }
+  quizGo();
+}
+
+function quizGo() {
+  // 전체 제한시간 세션 타이머: 타임어택 + 5문제 도전(제한시간 있을 때)
+  if (userSettings.mode === 'timeattack' ||
+      (userSettings.mode === 'fixed5' && userSettings.timeLimit > 0)) {
+    startSessionTimer(userSettings.timeLimit);
+  }
+  // 게임 배경음악
+  if ((userSettings.mode === 'fixed5' && userSettings.timeLimit === 0) || userSettings.mode === 'survival') {
+    playNoTimeBgm();                       // 제한시간 없음 → 23분 음원(끝나면 이스터에그)
+  } else if (GAME_BGM[userSettings.timeLimit]) {
+    playGameBgm(userSettings.timeLimit);   // 40/60/90초 음원(반복)
+  }
+  displayProblem();
+}
+
+function clearAutoAdvance() {
+  if (autoAdvanceTimer) { clearTimeout(autoAdvanceTimer); autoAdvanceTimer = null; }
+  if (autoAdvanceCountdown) { clearInterval(autoAdvanceCountdown); autoAdvanceCountdown = null; }
+}
+
+function clearAllTimers() {
+  clearInterval(timerInterval);
+  clearInterval(sessionInterval);
+  sessionInterval = null;
+  if (preCountdownInterval) { clearInterval(preCountdownInterval); preCountdownInterval = null; }
+  clearAutoAdvance();
+}
+
+function backToSettings() {
+  clearAllTimers();
+  stopGameBgm();
+  if (typeof gameState !== 'undefined') {
+    if (gameState.sessionInterval) { clearInterval(gameState.sessionInterval); gameState.sessionInterval = null; }
+    if (gameState.countdownInterval) { clearInterval(gameState.countdownInterval); gameState.countdownInterval = null; }
+  }
+  document.getElementById('quizScreen').classList.add('hidden');
+  document.getElementById('resultScreen').classList.add('hidden');
+  const gs = document.getElementById('gameScreen'); if (gs) gs.classList.add('hidden');
+  const cs = document.getElementById('countdownScreen'); if (cs) cs.classList.add('hidden');
+  document.getElementById('settingsScreen').classList.remove('hidden');
+}
+
+// ===== 타임어택 세션 타이머 =====
+function startSessionTimer(totalSeconds) {
+  clearInterval(sessionInterval);
+  sessionEndTime = Date.now() + totalSeconds * 1000;
+  const total = totalSeconds;
+  updateTimerDisplay(totalSeconds, total);
+  sessionInterval = setInterval(() => {
+    const remain = (sessionEndTime - Date.now()) / 1000;
+    updateTimerDisplay(Math.max(0, remain), total);
+    if (remain <= 0) {
+      clearInterval(sessionInterval);
+      sessionInterval = null;
+      onSessionTimeUp();
+    }
+  }, 50);
+}
+
+function onSessionTimeUp() {
+  clearAutoAdvance();
+  // 진행 중이던 문제 미답 처리
+  if (!answered && currentProblem) {
+    answered = true;
+    document.querySelectorAll('.option').forEach(d => d.classList.add('disabled'));
+    answerHistory.push({ problem: currentProblem, pickedIdx: -1, isCorrect: false, timedOut: true });
+    totalCount++;
+  }
+  showResults();
+}
+
+// 서바이벌: 1초 후 자동 진행
+function scheduleSurvivalAdvance() {
+  clearAutoAdvance();
+  autoAdvanceTimer = setTimeout(() => {
+    clearAutoAdvance();
+    nextProblem();
+  }, SURV_AUTO_DELAY);
+}
+
+// 타임어택: 1초 후 다음 문제
+function scheduleTimeAttackAdvance() {
+  clearAutoAdvance();
+  autoAdvanceTimer = setTimeout(() => {
+    autoAdvanceTimer = null;
+    if (sessionEndTime > Date.now()) displayProblem();
+    else showResults();
+  }, TA_FEEDBACK_DELAY);
+}
+
+// ===== 수학 유틸 =====
+function gcd(a, b) {
+  a = Math.abs(a); b = Math.abs(b);
+  while (b) { [a, b] = [b, a % b]; }
+  return a || 1;
+}
+function simplify(num, den) {
+  if (den < 0) { num = -num; den = -den; }
+  const g = gcd(num, den);
+  return [num / g, den / g];
+}
+function randPick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+function flipIneq(s) {
+  return { '<': '>', '>': '<', '≤': '≥', '≥': '≤' }[s];
+}
+
+// ===== 표시 헬퍼 =====
+function fracHTML(num, den) {
+  if (den === 1) return `<span class="num-text">${num}</span>`;
+  if (num === 0) return `<span class="num-text">0</span>`;
+  if (num < 0) {
+    return `<span class="op">-</span><span class="frac"><span class="num">${-num}</span><span class="den">${den}</span></span>`;
+  }
+  return `<span class="frac"><span class="num">${num}</span><span class="den">${den}</span></span>`;
+}
+
+// a^n 형태 (계산하지 않고 표시)
+function expHTML(base, exp) {
+  if (exp === 0) return `<span class="num-text">1</span>`;
+  if (exp === 1) return `<span class="expr">${base}</span>`;
+  const e = (exp < 0) ? `(${exp})` : `${exp}`;
+  return `<span class="expr">${base}<sup>${e}</sup></span>`;
+}
+
+// 일차식 ax + b 표시
+function linExprHTML(a, b) {
+  let parts = [];
+  if (a !== 0) {
+    if (a === 1) parts.push('x');
+    else if (a === -1) parts.push('-x');
+    else parts.push(`${a}x`);
+  }
+  if (b !== 0) {
+    if (parts.length === 0) parts.push(`${b}`);
+    else if (b > 0) parts.push(`+ ${b}`);
+    else parts.push(`- ${-b}`);
+  }
+  if (parts.length === 0) parts.push('0');
+  return `<span class="num-text">${parts.join(' ')}</span>`;
+}
+
+function eqResultHTML(num, den) {
+  return `<span class="op">x</span><span class="ineq-sym">=</span>` + fracHTML(num, den);
+}
+function ineqResultHTML(num, den, sym) {
+  return `<span class="op">x</span><span class="ineq-sym">${sym}</span>` + fracHTML(num, den);
+}
+
+// ===== 공통: 분수 보기 만들기 (정답에서 분자 ±1 ~ ±7) =====
+function makeFractionOptions(corrNum, corrDen) {
+  const offsets = [-1, 1, -2, 2, -3, 3, -4, 4, -5, 5, -6, 6, -7, 7];
+  const wrongs = [];
+  const seen = new Set([`${corrNum}/${corrDen}`]);
+  for (const off of offsets) {
+    if (wrongs.length >= 3) break;
+    const [sn, sd] = simplify(corrNum + off, corrDen);
+    const key = `${sn}/${sd}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      wrongs.push({ html: fracHTML(sn, sd), key, isCorrect: false });
+    }
+  }
+  const opts = [{ html: fracHTML(corrNum, corrDen), key: `${corrNum}/${corrDen}`, isCorrect: true }, ...wrongs];
+  return shuffle(opts);
+}
+
+function makeIneqOptions(corrNum, corrDen, sym) {
+  const offsets = [-1, 1, -2, 2, -3, 3, -4, 4, -5, 5, -6, 6, -7, 7];
+  const wrongs = [];
+  const seen = new Set([`${sym}:${corrNum}/${corrDen}`]);
+  for (const off of offsets) {
+    if (wrongs.length >= 3) break;
+    const [sn, sd] = simplify(corrNum + off, corrDen);
+    const key = `${sym}:${sn}/${sd}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      wrongs.push({ html: ineqResultHTML(sn, sd, sym), key, isCorrect: false });
+    }
+  }
+  const opts = [{ html: ineqResultHTML(corrNum, corrDen, sym), key: `${sym}:${corrNum}/${corrDen}`, isCorrect: true }, ...wrongs];
+  return shuffle(opts);
+}
+
+function makeIntOptions(correct, range) {
+  // 정수 결과: ±1, ±2, ±3 ...
+  const offsets = [-1, 1, -2, 2, -3, 3, -4, 4, -5, 5];
+  const wrongs = [];
+  const seen = new Set([String(correct)]);
+  for (const off of offsets) {
+    if (wrongs.length >= 3) break;
+    const w = correct + off;
+    if (!seen.has(String(w))) {
+      seen.add(String(w));
+      wrongs.push({ html: `<span class="num-text">${w}</span>`, key: String(w), isCorrect: false });
+    }
+  }
+  const opts = [
+    { html: `<span class="num-text">${correct}</span>`, key: String(correct), isCorrect: true },
+    ...wrongs
+  ];
+  return shuffle(opts);
+}
+
+// 지수 단원: 선지를 '밑의 거듭제곱' 값으로. 오답 지수는 정답 ±2 범위.
+function makeBasePowerOptions(base, correctExp) {
+  // 밑이 1이면 거듭제곱이 모두 1 → 정수 보기로 대체
+  if (base === 1) return makeIntOptions(1);
+  const valHTML = (k) => (k >= 0)
+    ? `<span class="num-text">${Math.pow(base, k)}</span>`
+    : fracHTML(1, Math.pow(base, -k));   // 음의 지수 → 분수 (예: 2^-2 = 1/4)
+  const opts = [{ html: valHTML(correctExp), key: 'p' + correctExp, isCorrect: true }];
+  for (const off of shuffle([-2, -1, 1, 2])) {   // 오답 지수: 정답 ±2 범위에서
+    if (opts.length >= 4) break;
+    const k = correctExp + off;
+    opts.push({ html: valHTML(k), key: 'p' + k, isCorrect: false });
+  }
+  return shuffle(opts);
+}
+
+function makeExpOptions(base, correctExp, allowNeg = true) {
+  // 결과 지수 ±1, ±2, ±3 ...  (allowNeg=false면 양의 지수만)
+  const offsets = [-1, 1, -2, 2, -3, 3, -4, 4, -5, 5];
+  const wrongs = [];
+  const seen = new Set([String(correctExp)]);
+  for (const off of offsets) {
+    if (wrongs.length >= 3) break;
+    const w = correctExp + off;
+    if (!allowNeg && w <= 0) continue; // 양의 지수만 (0 제외)
+    if (!seen.has(String(w))) {
+      seen.add(String(w));
+      wrongs.push({ html: expHTML(base, w), key: `${base}^${w}`, isCorrect: false });
+    }
+  }
+  // 부족하면 더 큰 양의 offset로 채움
+  let extra = 6;
+  while (wrongs.length < 3 && extra < 50) {
+    const w = correctExp + extra;
+    if (!seen.has(String(w))) {
+      seen.add(String(w));
+      wrongs.push({ html: expHTML(base, w), key: `${base}^${w}`, isCorrect: false });
+    }
+    extra++;
+  }
+  const opts = [
+    { html: expHTML(base, correctExp), key: `${base}^${correctExp}`, isCorrect: true },
+    ...wrongs
+  ];
+  return shuffle(opts);
+}
+
+// ===== 1) 정수와 유리수: a/b op c/d (문제 표시도 기약분수, 정답은 항상 양수) =====
+function generateFractionProblem() {
+  const cfg = problemSets["정수와 유리수"];
+  let a, b, c, d, op, aN, aD, cN, cD, corrNum, corrDen;
+  let safety = 0;
+  do {
+    a = randPick(cfg.numerators);
+    b = randPick(cfg.denominators);
+    c = randPick(cfg.numerators);
+    d = randPick(cfg.denominators);
+    op = randPick(cfg.operators);
+    [aN, aD] = simplify(a, b);
+    [cN, cD] = simplify(c, d);
+    let n, dn;
+    switch (op) {
+      case '+': n = aN*cD + cN*aD; dn = aD*cD; break;
+      case '-': n = aN*cD - cN*aD; dn = aD*cD; break;
+      case '×': n = aN*cN; dn = aD*cD; break;
+      case '÷': n = aN*cD; dn = aD*cN; break;
+    }
+    [corrNum, corrDen] = simplify(n, dn);
+    safety++;
+    if (safety > 100) {
+      // 안전 폴백: 1/2 + 1/2 = 1
+      a = 1; b = 2; c = 1; d = 2; op = '+';
+      aN = 1; aD = 2; cN = 1; cD = 2;
+      [corrNum, corrDen] = [1, 1];
+      break;
+    }
+  } while (corrNum <= 0); // 정답이 양수가 될 때까지 재추첨
+
+  const options = makeFractionOptions(corrNum, corrDen);
+  const correctIdx = options.findIndex(o => o.isCorrect);
+
+  const exprHTML =
+    fracHTML(aN, aD) +
+    `<span class="op">${op}</span>` +
+    fracHTML(cN, cD);
+
+  return {
+    problemHTML: exprHTML + `<span class="op">=</span><span class="op">?</span>`,
+    options, correctIdx,
+    reviewHTML: exprHTML + `<span class="op">=</span>` + fracHTML(corrNum, corrDen),
+    topic: '정수와 유리수',
+    data: { aN, aD, op, cN, cD, corrNum, corrDen }
+  };
+}
+
+// ax+b = cx+d 가 "x = 상수" 또는 "상수 = x" 같은 trivial 형태인지 확인
+function isTrivialEq(a, b, c, d) {
+  const leftBareX = (a === 1 || a === -1) && b === 0;   // 좌변: x 또는 -x
+  const rightBareX = (c === 1 || c === -1) && d === 0;  // 우변: x 또는 -x
+  const leftConst = (a === 0);                          // 좌변: 상수만
+  const rightConst = (c === 0);                         // 우변: 상수만
+  if (leftBareX && rightConst) return true;
+  if (leftConst && rightBareX) return true;
+  return false;
+}
+
+// ===== 2) 일차방정식: ax + b = cx + d, x = ? (x는 양수, "x=상수" 형태 회피) =====
+// 첫 문제: 양 변 모두 x 계수 ≠ 0
+// 첫 문제 정답일 경우: 이후 문제는 평범한 랜덤
+// 첫 문제 오답일 경우: 이후 문제는 쉬운 모드 (한쪽 x 계수 = 0, 양 변 상수항 ≠ 0)
+function generateLinearEquation() {
+  const cfg = problemSets["일차방정식"];
+  let a, b, c, d, corrNum, corrDen, safety = 0;
+
+  const isFirst = (problemIndex === 1);
+  const easyMode = (!isFirst && firstEquationCorrect === false);
+
+  if (easyMode) {
+    // 쉬운 모드: a=0 XOR c=0, b≠0, d≠0
+    const xCoefNZ = cfg.xCoef.filter(v => v !== 0);
+    const constNZ = cfg.constants.filter(v => v !== 0);
+    do {
+      if (Math.random() < 0.5) { a = 0; c = randPick(xCoefNZ); }
+      else { a = randPick(xCoefNZ); c = 0; }
+      b = randPick(constNZ);
+      d = randPick(constNZ);
+      [corrNum, corrDen] = simplify(d - b, a - c);
+      safety++;
+      if (safety > 200) { a = 0; b = 2; c = 1; d = 5; [corrNum, corrDen] = simplify(3, 1); break; }
+    } while (corrNum <= 0);
+  } else {
+    // 일반 모드 / 첫 문제 모드
+    do {
+      a = randPick(cfg.xCoef);
+      b = randPick(cfg.constants);
+      c = randPick(cfg.xCoef);
+      d = randPick(cfg.constants);
+      // 첫 문제는 양 변 x 계수 모두 ≠ 0
+      if (isFirst && (a === 0 || c === 0)) { safety++; corrNum = -1; continue; }
+      // "x = 상수" 같은 trivial 형태 회피
+      if (isTrivialEq(a, b, c, d)) { safety++; corrNum = -1; continue; }
+      if (a !== c) {
+        [corrNum, corrDen] = simplify(d - b, a - c);
+      } else {
+        corrNum = -1;
+      }
+      safety++;
+      if (safety > 300) { a = 3; b = 0; c = 1; d = 4; [corrNum, corrDen] = simplify(4, 2); break; }
+    } while (a === c || corrNum <= 0 || (isFirst && (a === 0 || c === 0)) || isTrivialEq(a, b, c, d));
+  }
+  const options = makeFractionOptions(corrNum, corrDen);
+  const correctIdx = options.findIndex(o => o.isCorrect);
+
+  const exprHTML = linExprHTML(a, b) + `<span class="ineq-sym">=</span>` + linExprHTML(c, d);
+
+  return {
+    problemHTML: exprHTML + `<span class="line-break"></span><span class="op">x</span><span class="ineq-sym">=</span><span class="op">?</span>`,
+    options, correctIdx,
+    reviewHTML: exprHTML + `<span class="op"> ⇒ </span>` + eqResultHTML(corrNum, corrDen),
+    topic: '일차방정식',
+    data: { a, b, c, d, corrNum, corrDen }
+  };
+}
+
+// ===== 3) 지수: a^n 의 값 =====
+function generateExponent() {
+  const cfg = problemSets["지수"];
+  const base = randPick(cfg.bases);
+  const exp = randPick(cfg.exps);
+  const result = Math.pow(base, exp);
+
+  const options = makeBasePowerOptions(base, exp);   // 밑의 거듭제곱 값으로 선지 구성
+  const correctIdx = options.findIndex(o => o.isCorrect);
+
+  const exprHTML = expHTML(base, exp);
+  return {
+    problemHTML: exprHTML + `<span class="op">=</span><span class="op">?</span>`,
+    options, correctIdx,
+    reviewHTML: exprHTML + `<span class="op">=</span><span class="num-text">${result}</span>`,
+    topic: '지수',
+    data: { base, exp, result }
+  };
+}
+
+// ===== 5) 지수법칙(중2): a^m [×÷] a^n =====
+function generateExpLawMS() {
+  const cfg = problemSets["지수법칙(중2)"];
+  const base = randPick(cfg.bases);
+  const op = randPick(cfg.operators);
+  let m = randPick(cfg.exps);
+  let n = randPick(cfg.exps);
+  let resultExp;
+  if (op === '×') {
+    resultExp = m + n;
+  } else {
+    // ÷: 중2는 양수 지수만 → m > n 보장
+    if (m <= n) { const tmp = m; m = Math.max(n + 1, tmp); n = Math.min(tmp, n); }
+    if (m > 10) m = 10;
+    if (m === n) m = n + 1;
+    resultExp = m - n;
+  }
+
+  const options = makeExpOptions(base, resultExp, false); // 중2: 음수 지수 안 다룸
+  const correctIdx = options.findIndex(o => o.isCorrect);
+
+  const exprHTML = expHTML(base, m) + `<span class="op">${op}</span>` + expHTML(base, n);
+  return {
+    problemHTML: exprHTML + `<span class="op">=</span><span class="op">?</span>`,
+    options, correctIdx,
+    reviewHTML: exprHTML + `<span class="op">=</span>` + expHTML(base, resultExp),
+    topic: '지수법칙(중2)',
+    data: { base, op, m, n, resultExp }
+  };
+}
+
+// ===== 지수 표시 헬퍼 (base가 객체: simple/frac 모두 지원) =====
+function renderBaseObj(baseObj) {
+  if (baseObj.type === 'frac') {
+    return `(<span class="frac"><span class="num">${baseObj.num}</span><span class="den">${baseObj.den}</span></span>)`;
+  }
+  return String(baseObj.val);
+}
+function baseKeyOf(baseObj) {
+  return baseObj.type === 'frac' ? `${baseObj.num}/${baseObj.den}` : String(baseObj.val);
+}
+function expHTMLObj(baseObj, exp) {
+  const bStr = renderBaseObj(baseObj);
+  if (exp === 0) return `<span class="num-text">1</span>`;
+  if (exp === 1) return `<span class="expr">${bStr}</span>`;
+  const e = (exp < 0) ? `(${exp})` : `${exp}`;
+  return `<span class="expr">${bStr}<sup>${e}</sup></span>`;
+}
+function expFracHTMLObj(baseObj, num, den) {
+  if (den === 1) return expHTMLObj(baseObj, num);
+  const bStr = renderBaseObj(baseObj);
+  return `<span class="expr">${bStr}<span class="exp-frac-sup"><span class="exp-frac-num">${num}</span><span class="exp-frac-den">${den}</span></span></span>`;
+}
+function expAnyHTMLObj(baseObj, e) {
+  return (e.type === 'int') ? expHTMLObj(baseObj, e.val) : expFracHTMLObj(baseObj, e.num, e.den);
+}
+
+// 양의 정수 지수만 옵션으로 (base 객체 사용)
+function makeExpOptionsForBaseObj(baseObj, correctExp) {
+  const offsets = [-1, 1, -2, 2, -3, 3, -4, 4, -5, 5];
+  const wrongs = [];
+  const seen = new Set([String(correctExp)]);
+  for (const off of offsets) {
+    if (wrongs.length >= 3) break;
+    const w = correctExp + off;
+    if (w <= 0) continue;
+    if (!seen.has(String(w))) {
+      seen.add(String(w));
+      wrongs.push({ html: expHTMLObj(baseObj, w), key: `${baseKeyOf(baseObj)}^${w}`, isCorrect: false });
+    }
+  }
+  let extra = 6;
+  while (wrongs.length < 3 && extra < 50) {
+    const w = correctExp + extra;
+    if (!seen.has(String(w))) {
+      seen.add(String(w));
+      wrongs.push({ html: expHTMLObj(baseObj, w), key: `${baseKeyOf(baseObj)}^${w}`, isCorrect: false });
+    }
+    extra++;
+  }
+  const opts = [
+    { html: expHTMLObj(baseObj, correctExp), key: `${baseKeyOf(baseObj)}^${correctExp}`, isCorrect: true },
+    ...wrongs
+  ];
+  return shuffle(opts);
+}
+
+// base 뒤집기 (a → 1/a, p/q → q/p)
+function invertBase(baseObj) {
+  if (baseObj.type === 'frac') {
+    return { type: 'frac', num: baseObj.den, den: baseObj.num };
+  }
+  return { type: 'frac', num: 1, den: baseObj.val };
+}
+
+// ===== 6) 지수법칙(고2): a^m [×÷] a^n =====
+// - 밑은 정수/변수/분수 중 하나
+// - 지수는 정수(음수 가능) 또는 양수 분수
+// - 연산자는 × 또는 ÷
+// - 결과 지수 k 가 음수면 밑을 뒤집어 양수 지수로 변환
+// - 정답은 base^k 형태 (전개하지 않음), k 는 양의 정수
+function generateExpLawHS() {
+  const cfg = problemSets["지수법칙(고2)"];
+  const op = randPick(cfg.operators);
+
+  // 밑 선택
+  let baseObj;
+  const useFracBase = Math.random() < 0.4;
+  if (useFracBase) {
+    const [bn, bd] = simplify(randPick(cfg.fracNumerators), randPick(cfg.fracDenominators));
+    if (bd === 1) baseObj = { type: 'simple', val: bn };
+    else baseObj = { type: 'frac', num: bn, den: bd };
+  } else {
+    baseObj = { type: 'simple', val: randPick(cfg.simpleBases) };
+  }
+
+  // 지수 모드: 정수(음수 가능) 또는 양수 분수
+  const useFracExp = Math.random() < 0.5;
+  let m, n, k, safety = 0;
+
+  while (safety < 500) {
+    safety++;
+    if (useFracExp) {
+      const [msn, msd] = simplify(randPick(cfg.fracNumerators), randPick(cfg.fracDenominators));
+      const [nsn, nsd] = simplify(randPick(cfg.fracNumerators), randPick(cfg.fracDenominators));
+      if (msd === 1 && nsd === 1) continue;
+      let kNum, kDen;
+      if (op === '×') { kNum = msn*nsd + nsn*msd; kDen = msd*nsd; }
+      else { kNum = msn*nsd - nsn*msd; kDen = msd*nsd; }
+      const [sn, sd] = simplify(kNum, kDen);
+      if (sd !== 1 || sn === 0) continue;
+      m = { type: 'frac', num: msn, den: msd };
+      n = { type: 'frac', num: nsn, den: nsd };
+      k = sn;
+      break;
+    } else {
+      const mv = randPick(cfg.intExps); // 음수 포함
+      const nv = randPick(cfg.intExps);
+      const kk = (op === '×') ? mv + nv : mv - nv;
+      if (kk === 0) continue;
+      m = { type: 'int', val: mv };
+      n = { type: 'int', val: nv };
+      k = kk;
+      break;
+    }
+  }
+
+  if (safety >= 500) {
+    m = { type: 'int', val: -3 };
+    n = { type: 'int', val: 1 };
+    k = (op === '×') ? -2 : -4;
+  }
+
+  // k가 음수면 밑을 뒤집고 k를 양수로 변환 (예: a^-3 → (1/a)^3)
+  let displayBase = baseObj;
+  let displayK = k;
+  if (k < 0) {
+    displayBase = invertBase(baseObj);
+    displayK = -k;
+  }
+
+  // 옵션 (양의 정수 지수만)
+  const options = makeExpOptionsForBaseObj(displayBase, displayK);
+  const correctIdx = options.findIndex(o => o.isCorrect);
+
+  const exprHTML = expAnyHTMLObj(baseObj, m) + `<span class="op">${op}</span>` + expAnyHTMLObj(baseObj, n);
+  const ansHTML = expHTMLObj(displayBase, displayK);
+
+  return {
+    problemHTML: exprHTML + `<span class="op">=</span><span class="op">?</span>`,
+    options, correctIdx,
+    reviewHTML: exprHTML + `<span class="op">=</span>` + ansHTML,
+    topic: '지수법칙(고2)',
+    data: { baseObj, op, m, n, k, displayBase, displayK }
+  };
+}
+
+// ===== 7) 등차수열: a1, a1+d, a1+2d, a1+3d 중 하나를 빈 칸 =====
+function generateArithmeticSeq() {
+  const cfg = problemSets["등차수열"];
+  let a1, d, terms, missingIdx, missingValue, safety = 0;
+  do {
+    a1 = randPick(cfg.a1Range);
+    d = randPick(cfg.dRange);
+    terms = [];
+    for (let i = 0; i < cfg.termCount; i++) terms.push(a1 + i * d);
+    safety++;
+    if (safety > 100) { a1 = 2; d = 3; terms = [2, 5, 8, 11]; break; }
+  } while (terms.some(t => t <= 0)); // 모든 항이 양수가 되도록
+
+  // 가운데 위치 중 하나 (1 또는 2, 0-indexed) 를 빈 칸으로
+  missingIdx = randPick([1, 2]);
+  missingValue = terms[missingIdx];
+
+  const probHTML = seqDisplayHTML(terms, missingIdx);
+  const options = makeIntOptions(missingValue);
+  const correctIdx = options.findIndex(o => o.isCorrect);
+  const fullHTML = seqDisplayHTML(terms, -1); // 빈 칸 없이 전체
+
+  return {
+    problemHTML: probHTML + _qmark(),
+    options, correctIdx,
+    reviewHTML: probHTML + `<span class="op">→</span>` + fullHTML,
+    topic: '등차수열',
+    data: { a1, d, terms, missingIdx, missingValue }
+  };
+}
+
+// ===== 8) 등비수열: a1, a1*r, a1*r^2, a1*r^3 중 하나를 빈 칸 =====
+function generateGeometricSeq() {
+  const cfg = problemSets["등비수열"];
+  const a1 = randPick(cfg.a1Range);
+  const r = randPick(cfg.rRange);
+  const terms = [];
+  for (let i = 0; i < cfg.termCount; i++) terms.push(a1 * Math.pow(r, i));
+
+  const missingIdx = randPick([1, 2]);
+  const missingValue = terms[missingIdx];
+
+  const probHTML = seqDisplayHTML(terms, missingIdx);
+  const options = makeIntOptions(missingValue);
+  const correctIdx = options.findIndex(o => o.isCorrect);
+  const fullHTML = seqDisplayHTML(terms, -1);
+
+  return {
+    problemHTML: probHTML + _qmark(),
+    options, correctIdx,
+    reviewHTML: probHTML + `<span class="op">→</span>` + fullHTML,
+    topic: '등비수열',
+    data: { a1, r, terms, missingIdx, missingValue }
+  };
+}
+
+// 수열 표시 (missingIdx 위치는 '?' 로)
+function seqDisplayHTML(terms, missingIdx) {
+  const parts = terms.map((t, i) => i === missingIdx ? '?' : `${t}`);
+  return `<span class="num-text">${parts.join(',  ')}</span>`;
+}
+
+// ===== 9) 수열의 일반항: a_n 주고 a_k 의 값을 구함 =====
+function generateGeneralTerm() {
+  const cfg = problemSets["수열의 일반항"];
+  const isArith = Math.random() < 0.5;
+  const k = randPick(cfg.kRange);
+
+  if (isArith) {
+    let a1, dVal, ak, safety = 0;
+    do {
+      a1 = randPick(cfg.arithA1);
+      dVal = randPick(cfg.arithD);
+      ak = a1 + (k - 1) * dVal;
+      safety++;
+    } while (ak <= 0 && safety < 100);
+    const p = dVal;
+    const q = a1 - dVal;
+    const generalHTML = formatGeneralArith(p, q);
+    return buildGeneralTermResult({ type: 'arith', a1, d: dVal, p, q, k, ak, generalHTML });
+  } else {
+    let a1, r, ak;
+    do {
+      a1 = randPick(cfg.geoA1);
+      r = randPick(cfg.geoR);
+      ak = a1 * Math.pow(r, k - 1);
+    } while (ak > 999);
+    const generalHTML = formatGeneralGeo(a1, r);
+    return buildGeneralTermResult({ type: 'geo', a1, r, k, ak, generalHTML });
+  }
+}
+
+function buildGeneralTermResult(d) {
+  const probHTML = `<span class="num-text">a<sub>n</sub> = ${d.generalHTML}  일 때,</span>` + `<span class="num-text"> a<sub>${d.k}</sub> = ?</span>`;
+  const ansHTML = `<span class="num-text">${d.ak}</span>`;
+  const options = makeIntOptions(d.ak);
+  const correctIdx = options.findIndex(o => o.isCorrect);
+  const reviewHTML = `<span class="num-text">a<sub>n</sub> = ${d.generalHTML}  →  a<sub>${d.k}</sub> = ${d.ak}</span>`;
+  return {
+    problemHTML: probHTML,
+    options, correctIdx, reviewHTML,
+    topic: '수열의 일반항',
+    data: d
+  };
+}
+
+function formatGeneralArith(p, q) {
+  // a_n = p·n + q
+  let pPart = (p === 1) ? 'n' : (p === -1) ? '−n' : `${p}n`;
+  if (q === 0) return pPart;
+  if (q > 0) return `${pPart} + ${q}`;
+  return `${pPart} − ${-q}`;
+}
+function formatGeneralGeo(a1, r) {
+  // a_n = a1 × r^(n-1)
+  if (a1 === 1) return `${r}<sup>n−1</sup>`;
+  return `${a1} × ${r}<sup>n−1</sup>`;
+}
+
+// 단원별로 디스패치
+function generateProblem() {
+  return problemSets[userSettings.topic].generate();
+}
+
+function displayProblem() {
+  clearAutoAdvance();
+  answered = false;
+  problemIndex++;
+  document.getElementById('problemNum').textContent = problemIndex;
+
+  currentProblem = generateProblem();
+  const p = currentProblem;
+
+  document.getElementById('problem').innerHTML = p.problemHTML;
+
+  const optsDiv = document.getElementById('options');
+  optsDiv.innerHTML = '';
+  p.options.forEach((opt, idx) => {
+    const div = document.createElement('div');
+    div.className = 'option';
+    div.innerHTML = opt.html;
+    div.onclick = () => selectAnswer(idx);
+    optsDiv.appendChild(div);
+  });
+
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('feedback').className = 'feedback';
+
+  const nextBtn = document.getElementById('nextBtn');
+  const timerArea = document.getElementById('timerArea');
+
+  if (userSettings.mode === 'fixed5') {
+    nextBtn.style.display = '';
+    nextBtn.textContent = (problemIndex >= TOTAL_PROBLEMS) ? '결과 보기 ▶' : '다음 문제 →';
+    nextBtn.disabled = true;
+    // 전체 제한시간 세션 타이머 사용(beginQuiz에서 시작), 문제별 타이머 없음
+    timerArea.style.display = (userSettings.timeLimit === 0) ? 'none' : '';
+  } else if (userSettings.mode === 'survival') {
+    nextBtn.style.display = 'none';
+    nextBtn.disabled = false;
+    timerArea.style.display = 'none';   // 서바이벌: 시간제한 없음 (타이머 없음, 틀리면 종료)
+  } else if (userSettings.mode === 'timeattack') {
+    nextBtn.style.display = 'none';
+    nextBtn.disabled = false;
+    timerArea.style.display = '';
+    // 세션 타이머가 이미 동작 중 (startQuiz에서 시작)
+  }
+
+  if (tutGameCoaching && problemIndex === 1) tutorialHighlightAnswer();   // 튜토리얼 첫 게임 1번: 정답 강조
+}
+
+function updateTimerDisplay(remain, total) {
+  const pct = (remain / total) * 100;
+  const sec = Math.ceil(remain);
+
+  // 진행 바
+  const fill = document.getElementById('timerFill');
+  fill.style.width = pct + '%';
+  fill.style.backgroundPosition = `${100 - pct}% 0%`;
+
+  // 숫자
+  const numEl = document.getElementById('timerNumber');
+  numEl.textContent = sec;
+  numEl.classList.toggle('danger', remain <= 3);
+
+  // 원형
+  const circle = document.getElementById('timerCircle');
+  const deg = pct;
+  let color = '#4caf50';
+  if (pct < 60) color = '#ffeb3b';
+  if (pct < 30) color = '#f44336';
+  circle.style.background = `conic-gradient(${color} 0% ${deg}%, #eee ${deg}% 100%)`;
+  document.getElementById('timerCircleNum').textContent = sec;
+}
+
+function startTimer(seconds) {
+  clearInterval(timerInterval);
+  const total = seconds;
+  updateTimerDisplay(total, total);
+
+  const startTime = Date.now();
+  timerInterval = setInterval(() => {
+    const elapsed = (Date.now() - startTime) / 1000;
+    const remain = Math.max(0, total - elapsed);
+    updateTimerDisplay(remain, total);
+    if (remain <= 0) {
+      clearInterval(timerInterval);
+      timeOut();
+    }
+  }, 50);
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  clearInterval(timerInterval); // 문제별 타이머 중지 (세션 타이머는 계속)
+
+  const p = currentProblem;
+  const isCorrect = p.options[idx].isCorrect;
+
+  const optDivs = document.querySelectorAll('.option');
+  optDivs.forEach((d, i) => {
+    d.classList.add('disabled');
+    if (p.options[i].isCorrect) d.classList.add('correct');
+    else if (i === idx) d.classList.add('wrong');
+  });
+
+  totalCount++;
+  const fb = document.getElementById('feedback');
+  if (isCorrect) {
+    correctCount++;
+    playCorrect();                 // 정답 음원
+    fb.textContent = '🎉 정답입니다!';
+    fb.className = 'feedback correct';
+  } else {
+    fb.innerHTML = '❌ 오답입니다. 정답: ' + p.options[p.correctIdx].html;
+    fb.className = 'feedback wrong';
+    playWrong();                   // 틀린 음원
+    if (userSettings.mode === 'survival') gameEnded = true;
+  }
+  // 일차방정식 첫 문제 결과 기록
+  if (userSettings.topic === '일차방정식' && problemIndex === 1) {
+    firstEquationCorrect = isCorrect;
+  }
+  answerHistory.push({ problem: p, pickedIdx: idx, isCorrect, timedOut: false });
+
+  document.getElementById('nextBtn').disabled = false;
+
+  if (userSettings.mode === 'survival') scheduleSurvivalAdvance();
+  else if (userSettings.mode === 'timeattack') scheduleTimeAttackAdvance();
+}
+
+function timeOut() {
+  // 타임어택은 세션 타이머가 별도 관리하므로 여기 안 들어옴
+  if (answered) return;
+  answered = true;
+  const p = currentProblem;
+  const optDivs = document.querySelectorAll('.option');
+  optDivs.forEach((d, i) => {
+    d.classList.add('disabled');
+    if (p.options[i].isCorrect) d.classList.add('correct');
+  });
+  totalCount++;
+  const fb = document.getElementById('feedback');
+  fb.innerHTML = '⏰ 시간 초과! 정답: ' + p.options[p.correctIdx].html;
+  fb.className = 'feedback wrong';
+  playWrong();                   // 틀린 음원 (시간 초과도 오답 처리)
+  if (userSettings.mode === 'survival') gameEnded = true;
+  // 일차방정식 첫 문제 시간초과 = 오답으로 처리
+  if (userSettings.topic === '일차방정식' && problemIndex === 1) {
+    firstEquationCorrect = false;
+  }
+  answerHistory.push({ problem: p, pickedIdx: -1, isCorrect: false, timedOut: true });
+
+  document.getElementById('nextBtn').disabled = false;
+
+  if (userSettings.mode === 'survival') scheduleSurvivalAdvance();
+}
+
+function nextProblem() {
+  if (maybeEasterEgg()) return;   // 제한시간 없음 음원이 끝났으면(현재 문제까지 푼 뒤) 이스터에그
+  if (userSettings.mode === 'fixed5') {
+    if (problemIndex >= TOTAL_PROBLEMS) showResults();
+    else displayProblem();
+  } else if (userSettings.mode === 'survival') {
+    if (gameEnded) showResults();   // 틀리면 종료, 그 외엔 계속
+    else displayProblem();
+  } else if (userSettings.mode === 'timeattack') {
+    // 타임어택은 자동 진행되므로 보통은 호출 안 됨
+    if (sessionEndTime > Date.now()) displayProblem();
+    else showResults();
+  }
+}
+
+// '게임 종료!' 화면을 2초 보여준 뒤 결과 화면 표시
+function showGameOverThenResult() {
+  const go = document.getElementById('gameOverScreen');
+  if (go) { go.classList.remove('hidden'); go.style.display = 'flex'; }   // 게임 종료 화면 강제 표시(기존 음원 유지)
+  setTimeout(() => {
+    if (go) { go.classList.add('hidden'); go.style.display = 'none'; }
+    document.getElementById('resultScreen').classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // 결과 화면: 마무리 음원 무한반복 (게임 배경음악은 같은 채널이라 자동 정지)
+    playClip('finish', SND.finish, { volume: 0.5, loop: true });
+    if (tutGameCoaching) tutorialAfterResult();   // 튜토리얼: 결과 후 해설 유도
+  }, 2000);
+}
+
+function showResults() {
+  clearAllTimers();
+  recordAchProgress(userSettings.topic, userSettings.mode, correctCount);   // 업적 진행도(단원·모드별 최고 정답 수)
+  // 게임 종료 화면에서는 기존 음원(게임 배경음악)이 그대로 이어지고, 새 음원은 결과화면에서 재생
+  document.getElementById('quizScreen').classList.add('hidden');
+
+  const scoreEl = document.getElementById('resultScore');
+  const bestEl = document.getElementById('resultBest');
+
+  if (userSettings.mode === 'fixed5') {
+    scoreEl.textContent = `${correctCount} / ${TOTAL_PROBLEMS}`;
+    bestEl.classList.add('hidden');
+  } else if (userSettings.mode === 'survival') {
+    scoreEl.textContent = `${correctCount}개 맞춤`;
+
+    let prevBest = 0;
+    try { prevBest = parseInt(recordGet(SURV_BEST_KEY) || '0', 10); } catch(e) {}
+    let isNewBest = false;
+    let displayBest = prevBest;
+    if (correctCount > prevBest) {
+      displayBest = correctCount;
+      isNewBest = true;
+      try { recordSet(SURV_BEST_KEY, String(correctCount)); } catch(e) {}
+    }
+    bestEl.classList.remove('hidden');
+    bestEl.classList.toggle('new-best', isNewBest);
+    bestEl.textContent = isNewBest
+      ? `★ 새 최고 기록: ${displayBest}개 ★`
+      : `최고 기록: ${displayBest}개`;
+  } else if (userSettings.mode === 'timeattack') {
+    // 정답수 / 시도수 표시
+    scoreEl.textContent = `${correctCount}문제 맞춤`;
+
+    const key = TA_BEST_KEY(userSettings.timeLimit);
+    let prevBest = 0;
+    try { prevBest = parseInt(recordGet(key) || '0', 10); } catch(e) {}
+    let isNewBest = false;
+    let displayBest = prevBest;
+    if (correctCount > prevBest) {
+      displayBest = correctCount;
+      isNewBest = true;
+      try { recordSet(key, String(correctCount)); } catch(e) {}
+    }
+    bestEl.classList.remove('hidden');
+    bestEl.classList.toggle('new-best', isNewBest);
+    bestEl.textContent = isNewBest
+      ? `★ ${userSettings.timeLimit}초 새 최고 기록: ${displayBest}개 ★`
+      : `${userSettings.timeLimit}초 최고 기록: ${displayBest}개`;
+  }
+
+  // 게스트: 최고기록 정보 일절 표시 안 함
+  if (!currentUser) {
+    bestEl.classList.add('hidden');
+    bestEl.classList.remove('new-best');
+    bestEl.textContent = '';
+  }
+
+  const reviewDiv = document.getElementById('resultReview');
+  reviewDiv.innerHTML = '';
+  answerHistory.forEach((h, i) => {
+    const mark = h.isCorrect ? '✅' : '❌';
+    reviewDiv.innerHTML += `
+      <div class="review-item">
+        <span class="review-mark">${mark}</span>
+        <span style="color:#888; margin-right:5px;">${i+1}.</span>
+        <span class="review-eq">${h.problem.reviewHTML}</span>
+        <button class="explain-btn" onclick="showExplanation(${i})">해설</button>
+      </div>`;
+  });
+
+  showGameOverThenResult();        // '게임 종료!' 2초 후 결과 표시
+}
+
+function showExplanation(idx) {
+  const h = answerHistory[idx];
+  document.getElementById('explanationContent').innerHTML = generateExplanationHTML(h.problem);
+  document.getElementById('resultScreen').classList.add('hidden');
+  document.getElementById('explanationScreen').classList.remove('hidden');
+  window.scrollTo({top: 0, behavior: 'smooth'});
+  if (tutGameCoaching) {
+    setTimeout(() => coachButton(document.querySelector('#explanationScreen .start-btn'), '개념과 풀이를 다 봤으면 여기를 눌러 <b>돌아가기</b>!', null), 250);
+  }
+}
+
+function returnFromExplanation() {
+  document.getElementById('explanationScreen').classList.add('hidden');
+  document.getElementById('resultScreen').classList.remove('hidden');
+  window.scrollTo({top: 0, behavior: 'smooth'});
+  if (tutGameCoaching) {   // 해설까지 봤으면 튜토리얼 종료
+    tutGameCoaching = false;
+    setTimeout(() => coachExplain(null, '튜토리얼 완료! 🎉<br>이제 자유롭게 즐겨 보세요.', null), 250);
+  }
+}
+
+// ===================== 수열 격자 게임 =====================
+const GAME_GRID_SIZE = 5;
+const GAME_ARITH_POOL = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];
+const GAME_GEO_POOL = (function() {
+  const s = new Set();
+  for (let base = 1; base <= 5; base++) {
+    const maxExp = base === 5 ? 5 : 6;
+    for (let exp = 0; exp <= maxExp; exp++) {
+      const v = base ** exp;
+      if (v <= 999) s.add(v);
+    }
+  }
+  return [...s].sort((a,b) => a - b);
+})();
+
+let gameState = {
+  topic: null,
+  grid: [],
+  selected: [],
+  score: 0,
+  sessionEndTime: 0,
+  sessionInterval: null,
+  countdownInterval: null,
+};
+
+function _gameIsArithTriple(a,b,c){ return 2*a===b+c || 2*b===a+c || 2*c===a+b; }
+function _gameIsGeoTriple(a,b,c){ return a*a===b*c || b*b===a*c || c*c===a*b; }
+function _gameAreCollinear(p0,p1,p2){
+  if (p0.r===p1.r && p1.r===p2.r) return true;
+  if (p0.c===p1.c && p1.c===p2.c) return true;
+  if (p0.r-p0.c===p1.r-p1.c && p1.r-p1.c===p2.r-p2.c) return true;
+  if (p0.r+p0.c===p1.r+p1.c && p1.r+p1.c===p2.r+p2.c) return true;
+  return false;
+}
+function _gameAreAdjacent(a, b){
+  return Math.abs(a.r-b.r) <= 1 && Math.abs(a.c-b.c) <= 1 && !(a.r===b.r && a.c===b.c);
+}
+function _gameIsAdjacentChain(cells){
+  const [a,b,c] = cells;
+  const orders = [[a,b,c],[a,c,b],[b,a,c],[b,c,a],[c,a,b],[c,b,a]];
+  return orders.some(o => _gameAreAdjacent(o[0],o[1]) && _gameAreAdjacent(o[1],o[2]));
+}
+function _gameValidPositions(cells){
+  if (cells.length !== 3) return false;
+  return _gameAreCollinear(cells[0],cells[1],cells[2]) || _gameIsAdjacentChain(cells);
+}
+
+function _gameRandomCell(pool){ return pool[Math.floor(Math.random()*pool.length)]; }
+
+function _gameGenerateGrid(topic){
+  const pool = (topic === '등차수열') ? GAME_ARITH_POOL : GAME_GEO_POOL;
+  const grid = [];
+  for (let r = 0; r < GAME_GRID_SIZE; r++){
+    const row = [];
+    for (let c = 0; c < GAME_GRID_SIZE; c++) row.push(_gameRandomCell(pool));
+    grid.push(row);
+  }
+  return grid;
+}
+
+function startCountdownThenGame(topic, totalSec){
+  document.getElementById('settingsScreen').classList.add('hidden');
+  document.getElementById('resultScreen').classList.add('hidden');
+  document.getElementById('countdownScreen').classList.remove('hidden');
+
+  const desc = (topic === '등차수열')
+    ? '5×5 격자에서 <b>등차수열</b>을 이루는 3칸을 선택하세요.<br>한 줄(가로·세로·대각선) 또는 인접한 3칸이어야 합니다.<br>' + totalSec + '초 동안 최대한 많이 맞혀보세요!'
+    : '5×5 격자에서 <b>등비수열</b>을 이루는 3칸을 선택하세요.<br>한 줄(가로·세로·대각선) 또는 인접한 3칸이어야 합니다.<br>' + totalSec + '초 동안 최대한 많이 맞혀보세요!';
+  document.getElementById('gameDesc').innerHTML = desc;
+  document.getElementById('countdownTitle').textContent = `${topic} 찾기 게임`;
+
+  let count = 3;
+  document.getElementById('countdownBig').textContent = count;
+  if (gameState.countdownInterval) clearInterval(gameState.countdownInterval);
+  gameState.countdownInterval = setInterval(() => {
+    count--;
+    if (count > 0) {
+      document.getElementById('countdownBig').textContent = count;
+    } else {
+      clearInterval(gameState.countdownInterval);
+      gameState.countdownInterval = null;
+      startSequenceGame(topic, totalSec);
+    }
+  }, 1000);
+}
+
+function cancelCountdown(){
+  if (gameState.countdownInterval){ clearInterval(gameState.countdownInterval); gameState.countdownInterval = null; }
+  if (preCountdownInterval){ clearInterval(preCountdownInterval); preCountdownInterval = null; }
+  stopGameBgm();
+  document.getElementById('countdownScreen').classList.add('hidden');
+  document.getElementById('settingsScreen').classList.remove('hidden');
+}
+
+function startSequenceGame(topic, totalSec){
+  gameState.topic = topic;
+  gameState.grid = _gameGenerateGrid(topic);
+  gameState.selected = [];
+  gameState.score = 0;
+
+  document.getElementById('countdownScreen').classList.add('hidden');
+  document.getElementById('gameScreen').classList.remove('hidden');
+  document.getElementById('gameScore').textContent = '0';
+  document.getElementById('gameHint').textContent = (topic === '등차수열')
+    ? '규칙: 등차수열  (2b = a + c)' : '규칙: 등비수열  (b² = a × c)';
+  document.getElementById('gameToast').textContent = '';
+
+  renderGameGrid();
+  const go = () => { playGameBgm(totalSec); startGameTimer(totalSec); };
+  if (!modeSeen('seqgame')) {      // 수열 격자 게임 첫 진행이면 설명 먼저
+    markModeSeen('seqgame');
+    coachExplain(document.getElementById('gameGrid'),
+      '<b>수열 찾기</b> 🔢<br>격자에서 규칙(등차/등비)을 이루는 <b>3칸</b>을 한 줄(가로·세로·대각선)이나 인접하게 골라요.<br>제한시간 안에 최대한 많이 찾아보세요!',
+      go);
+    return;
+  }
+  go();
+}
+
+function renderGameGrid(){
+  const gridEl = document.getElementById('gameGrid');
+  gridEl.innerHTML = '';
+  for (let r = 0; r < GAME_GRID_SIZE; r++){
+    for (let c = 0; c < GAME_GRID_SIZE; c++){
+      const cell = document.createElement('div');
+      cell.className = 'game-cell';
+      cell.textContent = gameState.grid[r][c];
+      if (gameState.selected.some(s => s.r === r && s.c === c)) cell.classList.add('selected');
+      cell.onclick = () => onGameCellClick(r, c);
+      gridEl.appendChild(cell);
+    }
+  }
+}
+
+function onGameCellClick(r, c){
+  if (!gameState.sessionInterval) return; // 게임 끝남
+  const idx = gameState.selected.findIndex(s => s.r === r && s.c === c);
+  if (idx >= 0){
+    gameState.selected.splice(idx, 1);
+  } else if (gameState.selected.length < 3){
+    gameState.selected.push({ r, c });
+  }
+  renderGameGrid();
+  if (gameState.selected.length === 3) validateGameSelection();
+}
+
+// 찾은 수열 요약(수열 종류 + 일반항). 정렬해서 첫째항/공차(공비) 계산.
+function foundSeqSummary(vals, topic){
+  const s = vals.slice().sort((x, y) => x - y);
+  const a = s[0], b = s[1], c = s[2];
+  if (topic === '등차수열'){
+    const d = b - a;
+    const gen = (d === 0) ? `a&#8345; = ${a}` : `a&#8345; = ${a} + (n−1)×${d}`;
+    return `정답! ${a}, ${b}, ${c} → <b>등차수열</b> (첫째항 ${a}, 공차 ${d})<br>일반항 ${gen}`;
+  } else {
+    const r = b / a;
+    const rStr = Number.isInteger(r) ? r : Math.round(r * 100) / 100;
+    return `정답! ${a}, ${b}, ${c} → <b>등비수열</b> (첫째항 ${a}, 공비 ${rStr})<br>일반항 a&#8345; = ${a} × ${rStr}<sup>n−1</sup>`;
+  }
+}
+
+function validateGameSelection(){
+  const cells = gameState.selected.slice();
+  const vals = cells.map(({r,c}) => gameState.grid[r][c]);
+  const positionsOK = _gameValidPositions(cells);
+  let answerOK = false;
+  if (positionsOK){
+    if (gameState.topic === '등차수열') answerOK = _gameIsArithTriple(vals[0], vals[1], vals[2]);
+    else answerOK = _gameIsGeoTriple(vals[0], vals[1], vals[2]);
+  }
+  const toast = document.getElementById('gameToast');
+  const gridEl = document.getElementById('gameGrid');
+  const cellEls = Array.from(gridEl.children);
+  const indexOf = (r,c) => r * GAME_GRID_SIZE + c;
+
+  if (answerOK){
+    gameState.score++;
+    playCorrect();                 // 정답 음원
+    document.getElementById('gameScore').textContent = gameState.score;
+    toast.innerHTML = foundSeqSummary(vals, gameState.topic);   // 찾은 수열 요약(다음 동작까지 표시 유지)
+    toast.style.color = '#2e7d32';
+    cells.forEach(({r,c}) => cellEls[indexOf(r,c)].classList.add('flash-ok'));
+    setTimeout(() => {
+      const pool = (gameState.topic === '등차수열') ? GAME_ARITH_POOL : GAME_GEO_POOL;
+      cells.forEach(({r,c}) => { gameState.grid[r][c] = _gameRandomCell(pool); });
+      gameState.selected = [];
+      renderGameGrid();
+      // 요약은 다음 정답/오답 전까지 유지 (여기서 지우지 않음)
+    }, 450);
+  } else {
+    toast.textContent = positionsOK ? '아쉽다! 수열이 아니에요' : '한 줄 또는 인접한 3칸이어야 해요';
+    toast.style.color = '#c62828';
+    if (positionsOK) playWrong();   // 틀린 음원 (수열 오답일 때만)
+    cells.forEach(({r,c}) => cellEls[indexOf(r,c)].classList.add('flash-no'));
+    setTimeout(() => {
+      gameState.selected = [];
+      renderGameGrid();
+      toast.textContent = '';
+    }, 650);
+  }
+}
+
+function startGameTimer(totalSec){
+  const total = totalSec;
+  gameState.sessionEndTime = Date.now() + totalSec * 1000;
+  _updateGameTimer(totalSec, total);
+  if (gameState.sessionInterval) clearInterval(gameState.sessionInterval);
+  gameState.sessionInterval = setInterval(() => {
+    const remain = (gameState.sessionEndTime - Date.now()) / 1000;
+    _updateGameTimer(Math.max(0, remain), total);
+    if (remain <= 0){
+      clearInterval(gameState.sessionInterval);
+      gameState.sessionInterval = null;
+      endSequenceGame();
+    }
+  }, 50);
+}
+function _updateGameTimer(remain, total){
+  const pct = (remain / total) * 100;
+  document.getElementById('gameTimerFill').style.width = pct + '%';
+  document.getElementById('gameTimerFill').style.backgroundPosition = `${100 - pct}% 0%`;
+  document.getElementById('gameTimerNumber').textContent = Math.ceil(remain);
+}
+
+function endSequenceGame(){
+  // 게임 종료 화면에서는 기존 음원(게임 배경음악)이 그대로 이어지고, 새 음원은 결과화면에서 재생
+  document.getElementById('gameScreen').classList.add('hidden');
+  // 점수
+  document.getElementById('resultScore').textContent = `${gameState.score}개 맞춤`;
+  // 최고 기록
+  const key = `mathQuiz_수열게임_${gameState.topic}_${userSettings.timeLimit}_best`;
+  let prevBest = 0;
+  try { prevBest = parseInt(recordGet(key) || '0', 10); } catch(e) {}
+  let isNewBest = false;
+  let displayBest = prevBest;
+  if (gameState.score > prevBest){
+    displayBest = gameState.score;
+    isNewBest = true;
+    try { recordSet(key, String(gameState.score)); } catch(e) {}
+  }
+  const bestEl = document.getElementById('resultBest');
+  bestEl.classList.remove('hidden');
+  bestEl.classList.toggle('new-best', isNewBest);
+  bestEl.textContent = isNewBest
+    ? `★ 새 최고 기록: ${displayBest}개 (${userSettings.timeLimit}초) ★`
+    : `최고 기록: ${displayBest}개 (${userSettings.timeLimit}초)`;
+  // 게스트: 최고기록 정보 일절 표시 안 함
+  if (!currentUser) {
+    bestEl.classList.add('hidden');
+    bestEl.classList.remove('new-best');
+    bestEl.textContent = '';
+  }
+  // 게임 모드에서는 리뷰 없음
+  document.getElementById('resultReview').innerHTML = '';
+
+  showGameOverThenResult();        // '게임 종료!' 2초 후 결과 표시
+}
+
+function exitGame(){
+  stopGameBgm();
+  if (gameState.sessionInterval){ clearInterval(gameState.sessionInterval); gameState.sessionInterval = null; }
+  if (gameState.countdownInterval){ clearInterval(gameState.countdownInterval); gameState.countdownInterval = null; }
+  document.getElementById('gameScreen').classList.add('hidden');
+  document.getElementById('countdownScreen').classList.add('hidden');
+  document.getElementById('settingsScreen').classList.remove('hidden');
+}
+
+// 해설 빌더: 문제 / 개념 / 풀이 / 정답
+function buildExplanation(probHTML, conceptHTML, solutionHTML, ansHTML, opts = {}) {
+  const solClass = opts.vertical ? 'exp-formula vertical' : 'exp-formula';
+  let html = `<div class="explanation">`;
+  html += `<div class="exp-section"><div class="exp-label">문제</div><div class="exp-problem">${probHTML}</div></div>`;
+  html += `<div class="exp-section"><div class="exp-label">개념</div><div class="exp-formula">${conceptHTML}</div></div>`;
+  html += `<div class="exp-section"><div class="exp-label">풀이</div><div class="${solClass}">${solutionHTML}</div></div>`;
+  html += `<div class="exp-section"><div class="exp-label">정답</div><div class="exp-answer">${ansHTML}</div></div>`;
+  if (opts.note) html += `<div class="exp-section"><div class="exp-label">&lt;참고&gt;</div><div class="exp-formula">${opts.note}</div></div>`;
+  html += `</div>`;
+  return html;
+}
+
+// 밑의 거듭제곱 표 (엑셀 지수 범위 내, 값이 너무 크면 생략) — 정수 밑만
+function powerNote(base, maxExp) {
+  if (typeof base !== 'number' || !isFinite(base) || base <= 1) return '';
+  const parts = [];
+  for (let e = 1; e <= maxExp; e++) {
+    const v = Math.pow(base, e);
+    if (v > 9999) break;
+    parts.push(`<span class="expr">${base}<sup>${e}</sup></span>=${v}`);
+  }
+  return parts.length ? `<span class="num-text">${base}의 거듭제곱 →</span> ${parts.join('<span class="op" style="font-size:18px">,</span> ')}` : '';
+}
+
+// 작은 헬퍼들
+function _op(s) { return `<span class="op">${s}</span>`; }
+function _eq() { return `<span class="op">=</span>`; }
+function _qmark() { return `<span class="op">=</span><span class="op">?</span>`; }
+function _therefore() { return `<span class="op">∴</span>`; }
+function _eqSym() { return `<span class="ineq-sym">=</span>`; }
+// 텍스트(공식) 분수: num/den을 문자열로 넣을 수 있음 (예: 'a·d + b·c')
+function _tfrac(num, den) {
+  return `<span class="frac"><span class="num">${num}</span><span class="den">${den}</span></span>`;
+}
+// 텍스트 지수: a^p 같은 식
+function _texp(base, exp) {
+  return `<span class="expr">${base}<sup>${exp}</sup></span>`;
+}
+function _line(html) { return `<div class="line">${html}</div>`; }
+
+// 단원별 해설 디스패치
+function generateExplanationHTML(p) {
+  if (!p.topic || !p.data) return '<div>해설 정보 없음</div>';
+  switch (p.topic) {
+    case '정수와 유리수': return explainFractionProblem(p.data);
+    case '일차방정식':   return explainLinearEqProblem(p.data);
+    case '지수':         return explainExponentProblem(p.data);
+    case '지수법칙(중2)': return explainExpLawMSProblem(p.data);
+    case '지수법칙(고2)': return explainExpLawHSProblem(p.data);
+    case '등차수열':     return explainArithmeticSeqProblem(p.data);
+    case '등비수열':     return explainGeometricSeqProblem(p.data);
+    case '수열의 일반항': return explainGeneralTermProblem(p.data);
+  }
+  return '<div>해설 준비 중...</div>';
+}
+
+// 1) 정수와 유리수 해설
+function explainFractionProblem(d) {
+  const { aN, aD, op, cN, cD, corrNum, corrDen } = d;
+  const probHTML = fracHTML(aN, aD) + _op(op) + fracHTML(cN, cD) + _qmark();
+  const ansHTML = fracHTML(corrNum, corrDen);
+
+  // 개념
+  let concept;
+  if (op === '+' || op === '-') {
+    concept = _tfrac('a','b') + _op(op) + _tfrac('c','d') + _eq() + _tfrac(`a·d ${op} b·c`, 'b·d');
+  } else if (op === '×') {
+    concept = _tfrac('a','b') + _op('×') + _tfrac('c','d') + _eq() + _tfrac('a·c', 'b·d');
+  } else { // ÷
+    concept = _tfrac('a','b') + _op('÷') + _tfrac('c','d') + _eq() + _tfrac('a','b') + _op('×') + _tfrac('d','c') + _eq() + _tfrac('a·d', 'b·c');
+  }
+
+  // 풀이 (한 줄 체인)
+  let sol = fracHTML(aN, aD) + _op(op) + fracHTML(cN, cD);
+  if (op === '+' || op === '-') {
+    if (aD === cD) {
+      const n = (op === '+') ? aN + cN : aN - cN;
+      sol += _eq() + _tfrac(`${aN} ${op} ${cN}`, `${aD}`);
+      sol += _eq() + fracHTML(n, aD);
+      if (n !== corrNum || aD !== corrDen) sol += _eq() + fracHTML(corrNum, corrDen);
+    } else {
+      const commonD = aD * cD;
+      const newAN = aN * cD;
+      const newCN = cN * aD;
+      const n = (op === '+') ? newAN + newCN : newAN - newCN;
+      sol += _eq() + _tfrac(`${aN}×${cD} ${op} ${cN}×${aD}`, `${aD}×${cD}`);
+      sol += _eq() + _tfrac(`${newAN} ${op} ${newCN}`, `${commonD}`);
+      sol += _eq() + fracHTML(n, commonD);
+      if (n !== corrNum || commonD !== corrDen) sol += _eq() + fracHTML(corrNum, corrDen);
+    }
+  } else if (op === '×') {
+    const pn = aN * cN, pd = aD * cD;
+    sol += _eq() + _tfrac(`${aN}×${cN}`, `${aD}×${cD}`);
+    sol += _eq() + fracHTML(pn, pd);
+    if (pn !== corrNum || pd !== corrDen) sol += _eq() + fracHTML(corrNum, corrDen);
+  } else if (op === '÷') {
+    const pn = aN * cD, pd = aD * cN;
+    sol += _eq() + fracHTML(aN, aD) + _op('×') + fracHTML(cD, cN);
+    sol += _eq() + _tfrac(`${aN}×${cD}`, `${aD}×${cN}`);
+    sol += _eq() + fracHTML(pn, pd);
+    if (pn !== corrNum || pd !== corrDen) sol += _eq() + fracHTML(corrNum, corrDen);
+  }
+
+  return buildExplanation(probHTML, concept, sol, ansHTML);
+}
+
+// 2) 일차방정식 해설
+function explainLinearEqProblem(d) {
+  const { a, b, c, d: dd, corrNum, corrDen } = d;
+  const probHTML = linExprHTML(a, b) + _eqSym() + linExprHTML(c, dd);
+  const ansHTML = _op('x') + _eqSym() + fracHTML(corrNum, corrDen);
+
+  // 개념: ax + b = cx + d  ∴  (a-c)x = d - b  ∴  x = (d-b)/(a-c)
+  const concept =
+    `<span class="num-text">ax + b = cx + d</span>` + _therefore() +
+    `<span class="num-text">(a−c)x = d − b</span>` + _therefore() +
+    _op('x') + _eq() + _tfrac('d − b', 'a − c');
+
+  // 풀이 (∴ 로 연결)
+  const xCoef = a - c;
+  const constVal = dd - b;
+  const xPart = (xCoef === 1) ? 'x' : (xCoef === -1) ? '−x' : `${xCoef}x`;
+
+  let sol = linExprHTML(a, b) + _eqSym() + linExprHTML(c, dd);
+  sol += _therefore() + `<span class="num-text">${xPart} = ${constVal}</span>`;
+  if (xCoef !== 1) {
+    sol += _therefore() + _op('x') + _eq() + fracHTML(corrNum, corrDen);
+  }
+
+  return buildExplanation(probHTML, concept, sol, ansHTML);
+}
+
+// 3) 지수 해설
+function explainExponentProblem(d) {
+  const { base, exp, result } = d;
+  const probHTML = expHTML(base, exp) + _qmark();
+  const ansHTML = `<span class="num-text">${result}</span>`;
+
+  // 개념과 풀이 (밑이 1이면 1^x = 1 규칙)
+  let concept, sol;
+  if (base === 1) {
+    concept = _texp('1', 'x') + _eq() + `<span class="num-text">1</span>`;
+    sol = expHTML(1, exp) + _eq() + `<span class="num-text">1</span>`;
+  } else if (exp === 0) {
+    concept = _texp('a', '0') + _eq() + `<span class="num-text">1</span>`;
+    sol = expHTML(base, 0) + _eq() + `<span class="num-text">1</span>`;
+  } else {
+    concept = _texp('a', 'n') + _eq() + `<span class="num-text">a × a × ··· × a  (n번)</span>`;
+    const mults = Array(exp).fill(base).join(' × ');
+    sol = expHTML(base, exp) + _eq() + `<span class="num-text">${mults}</span>` + _eq() + `<span class="num-text">${result}</span>`;
+  }
+  return buildExplanation(probHTML, concept, sol, ansHTML);
+}
+
+// 4) 지수법칙(중2) 해설
+function explainExpLawMSProblem(d) {
+  const { base, op, m, n, resultExp } = d;
+  const probHTML = expHTML(base, m) + _op(op) + expHTML(base, n) + _qmark();
+  const ansHTML = expHTML(base, resultExp);
+
+  // 개념
+  let concept;
+  if (op === '×') {
+    concept = _texp('a','p') + _op('×') + _texp('a','q') + _eq() + _texp('a','p+q');
+  } else {
+    concept = _texp('a','p') + _op('÷') + _texp('a','q') + _eq() + _texp('a','p−q');
+  }
+
+  // 풀이
+  let sol = expHTML(base, m) + _op(op) + expHTML(base, n) + _eq();
+  if (op === '×') {
+    sol += _texp(base, `${m}+${n}`) + _eq() + expHTML(base, resultExp);
+  } else {
+    sol += _texp(base, `${m}−${n}`) + _eq() + expHTML(base, resultExp);
+  }
+  return buildExplanation(probHTML, concept, sol, ansHTML, { note: powerNote(base, 10) });   // 엑셀 지수 범위 1~10
+}
+
+// 6) 등차수열 해설 — 공차만 알려줌
+function explainArithmeticSeqProblem(d) {
+  const { d: diff, terms, missingIdx, missingValue } = d;
+  const probHTML = seqDisplayHTML(terms, missingIdx) + _qmark();
+  const ansHTML = `<span class="num-text">${missingValue}</span>`;
+  const concept = `<span class="num-text">a<sub>n</sub> = a<sub>1</sub> + (n−1)d</span>`;
+  const sol = `<span class="num-text">공차 d = ${diff}</span>`;
+  return buildExplanation(probHTML, concept, sol, ansHTML);
+}
+
+// 7) 등비수열 해설 — 공비만 알려줌
+function explainGeometricSeqProblem(d) {
+  const { r, terms, missingIdx, missingValue } = d;
+  const probHTML = seqDisplayHTML(terms, missingIdx) + _qmark();
+  const ansHTML = `<span class="num-text">${missingValue}</span>`;
+  const concept = `<span class="num-text">a<sub>n</sub> = a<sub>1</sub> × r<sup>n−1</sup></span>`;
+  const sol = `<span class="num-text">공비 r = ${r}</span>`;
+  return buildExplanation(probHTML, concept, sol, ansHTML);
+}
+
+// 8) 수열의 일반항 해설
+function explainGeneralTermProblem(d) {
+  const probHTML = `<span class="num-text">a<sub>n</sub> = ${d.generalHTML}  →  a<sub>${d.k}</sub> = ?</span>`;
+  const ansHTML = `<span class="num-text">${d.ak}</span>`;
+  if (d.type === 'arith') {
+    const concept = `<span class="num-text">a<sub>n</sub> = a<sub>1</sub> + (n−1)·d  ⇔  pn + q</span>`;
+    const qStr = (d.q >= 0) ? `+ ${d.q}` : `− ${-d.q}`;
+    const sol = `<span class="num-text">a<sub>${d.k}</sub> = ${d.p}×${d.k} ${d.q === 0 ? '' : qStr} = ${d.ak}</span>`;
+    return buildExplanation(probHTML, concept, sol, ansHTML);
+  } else {
+    const concept = `<span class="num-text">a<sub>n</sub> = a<sub>1</sub> × r<sup>n−1</sup></span>`;
+    const sol = `<span class="num-text">a<sub>${d.k}</sub> = ${d.a1} × ${d.r}<sup>${d.k-1}</sup> = ${d.ak}</span>`;
+    return buildExplanation(probHTML, concept, sol, ansHTML);
+  }
+}
+
+// 5) 지수법칙(고2) 해설
+function explainExpLawHSProblem(d) {
+  const { baseObj, op, m, n, k, displayBase, displayK } = d;
+  const probHTML = expAnyHTMLObj(baseObj, m) + _op(op) + expAnyHTMLObj(baseObj, n) + _qmark();
+  const ansHTML = expHTMLObj(displayBase, displayK);
+
+  // 개념
+  let concept;
+  if (op === '×') {
+    concept = _texp('a','p') + _op('×') + _texp('a','q') + _eq() + _texp('a','p+q');
+  } else {
+    concept = _texp('a','p') + _op('÷') + _texp('a','q') + _eq() + _texp('a','p−q');
+  }
+  if (k < 0) {
+    concept += _op(',') + _texp('a','−n') + _eq() + `<span class="expr">(${_tfrac('1','a')})<sup>n</sup></span>`;
+  }
+
+  // 풀이
+  const mDisp = (m.type === 'int') ? `${m.val}` : `${m.num}/${m.den}`;
+  const nDisp = (n.type === 'int') ? `${n.val}` : `${n.num}/${n.den}`;
+  const opSign = (op === '×') ? '+' : '−';
+  const bHTML = renderBaseObj(baseObj);
+
+  let sol = expAnyHTMLObj(baseObj, m) + _op(op) + expAnyHTMLObj(baseObj, n);
+  sol += _eq() + `<span class="expr">${bHTML}<sup>${mDisp} ${opSign} ${nDisp}</sup></span>`;
+  sol += _eq() + expHTMLObj(baseObj, k);
+  if (k < 0) {
+    sol += _eq() + ansHTML;
+  }
+  let note = '';
+  if (baseObj && baseObj.type === 'simple' && typeof baseObj.val === 'number') {
+    note = powerNote(baseObj.val, 5);   // 엑셀 정수 지수 범위 내(양의 지수)
+  }
+  return buildExplanation(probHTML, concept, sol, ansHTML, { note });
+}
+
+// ===================== 음원 (sound) =====================
+const SND = {
+  run:    ['../음원/실행 음원/풍년.mp3'],                 // 실행 음원 → 입장(실행)화면
+  bgm:    ['../음원/대기화면 배경음악/아름다운여행.mp3'],  // 대기 배경음악 → 메인에서 반복
+  finish: ['../음원/마무리 음원/얼씨구야.mp3'],           // 마무리 → 결과화면 1회
+  correct: [                                                        // 정답 → 맞출 때마다
+    '../음원/정답 음원/공간(9호선).mp3',
+    '../음원/정답 음원/차임벨(공항철도).mp3'
+  ],
+  wrong: [                                                          // 오답 → 틀릴 때마다
+    '../음원/틀린 음원/틀린효과음1.mp3',
+    '../음원/틀린 음원/틀린효과음2.mp3'
+  ]
+};
+
+const oneShot = {};      // 슬롯별 Audio 객체 재사용
+let bgmStarted = false;
+let masterVolume = 1;    // 0~1 소리 크기 (음소거 = 0)
+let prevVolume = 1;      // 음소거 해제 시 복원할 직전 크기
+
+// 한 파일 안에 여러 음원(클립)이 들어 있으면, 그 구간을 [시작초, 끝초]로 적어 둔다.
+// 재생 시 그중 하나를 랜덤으로 골라 그 구간만 재생. (등록 안 한 파일은 전체 재생)
+// 예) '../음원/실행 음원/풍년.mp3': [[0, 3.5], [3.6, 7.4]],
+const SEG = {
+  // 대기화면 배경음악: 앞부분이 늦게 시작하는 느낌 → 항상 5초 지점부터 재생(끝 무음 구간도 제외하고 반복)
+  '../음원/대기화면 배경음악/아름다운여행.mp3': [[5, 55.8]]
+};
+
+// 게임 배경음악: 선택한 제한시간(초)에 맞는 곡 재생
+const GAME_BGM = {
+  40: '../음원/게임 배경/40초.mp3',
+  60: '../음원/게임 배경/60초.mp3',
+  90: '../음원/게임 배경/90초.mp3'
+};
+
+function pickSrc(list) { return list[Math.floor(Math.random() * list.length)]; }
+function pickSeg(raw) {
+  const s = SEG[raw];
+  if (!s || !s.length) return null;
+  return s[Math.floor(Math.random() * s.length)];
+}
+
+// 배경음악 페이드아웃(전환 시). 페이드인은 없음.
+function fadeOutAudio(a, ms) {
+  if (!a || a.paused) return;
+  if (a._fadeTimer) clearInterval(a._fadeTimer);
+  const startVol = a.volume;
+  a._fadeVol = startVol;
+  if (startVol <= 0) { a.pause(); a._fadeTimer = null; a._fadeVol = null; return; }
+  const steps = 12, stepMs = (ms || 500) / steps;
+  let i = 0;
+  a._fadeTimer = setInterval(() => {
+    i++;
+    a.volume = Math.max(0, startVol * (1 - i / steps));
+    if (i >= steps) {
+      clearInterval(a._fadeTimer); a._fadeTimer = null;
+      a.pause();
+      a.volume = startVol;     // 다음 재생을 위해 볼륨 복원
+      a._fadeVol = null;
+    }
+  }, stepMs);
+}
+function cancelFade(a) {
+  if (a && a._fadeTimer) {
+    clearInterval(a._fadeTimer); a._fadeTimer = null;
+    if (a._fadeVol != null) { a.volume = a._fadeVol; a._fadeVol = null; }
+  }
+}
+
+// 채널: 배경음악(bgm/gamebgm)과 효과음(나머지)은 별도. 같은 채널 안에서만 한 번에 하나.
+// → 배경음악은 계속 흐르고, 그 위로 효과음이 재생되며, 효과음끼리는 새 소리가 이전 걸 끊는다.
+const BGM_SLOTS = ['bgm', 'gamebgm', 'run', 'finish'];
+function stopOthers(except) {
+  const exceptBgm = BGM_SLOTS.indexOf(except) >= 0;
+  for (const k in oneShot) {
+    if (k === except) continue;
+    const kBgm = BGM_SLOTS.indexOf(k) >= 0;
+    if (kBgm !== exceptBgm) continue;   // 다른 채널은 정지하지 않음
+    const a = oneShot[k];
+    if (a && !a.paused) {
+      if (kBgm) fadeOutAudio(a, 1000);   // 배경음악 전환 → 페이드아웃
+      else a.pause();                   // 효과음은 즉시 정지
+    }
+  }
+}
+// 게임 배경음악 재생/정지
+function playGameBgm(sec) {
+  const src = GAME_BGM[sec];
+  if (!src) return;
+  playClip('gamebgm', [src], { volume: 0.85, loop: true });   // 정답/오답 효과음(0.9)과 비슷한 크기
+}
+function stopGameBgm() {
+  const a = oneShot['gamebgm'];
+  if (a && !a.paused) fadeOutAudio(a, 1000);
+}
+
+// 제한시간 없음 전용 배경음악(약 23분). 끝나면 이스터에그.
+const NOTIME_BGM = '../음원/게임 배경/제한시간 없음.mp3';
+let noTimeMusicEnded = false, easterEggShown = false;
+function playNoTimeBgm() {
+  noTimeMusicEnded = false; easterEggShown = false;
+  playClip('gamebgm', [NOTIME_BGM], { volume: 0.85, loop: false, onDone: onNoTimeMusicEnd });
+}
+function onNoTimeMusicEnd() {
+  noTimeMusicEnded = true;
+  // 풀던 문제를 이미 끝낸 상태면 바로 이스터에그
+  if (answered) maybeEasterEgg();
+}
+function maybeEasterEgg() {
+  if (noTimeMusicEnded && !easterEggShown) { showEasterEgg(); return true; }
+  return false;
+}
+function showEasterEgg() {
+  easterEggShown = true;
+  clearAllTimers();
+  recordAchProgress(userSettings.topic, userSettings.mode, correctCount);   // 긴 플레이도 기록에 반영
+  if (currentUser) { clearHidden('longplay'); pendingHiddenReveal = true; announceHiddenId = 'longplay'; }   // 숨겨진 업적 클리어
+  stopGameBgm();
+  document.getElementById('quizScreen').classList.add('hidden');
+  const gs = document.getElementById('gameScreen'); if (gs) gs.classList.add('hidden');
+  const go = document.getElementById('gameOverScreen');
+  const em = go.querySelector('.gameover-emoji'), tx = go.querySelector('.gameover-text'), sb = go.querySelector('.gameover-sub');
+  em.textContent = '🎉'; tx.textContent = '23분 플레이하셨습니다.'; sb.textContent = '고생하셨습니다!';
+  go.classList.remove('hidden'); go.style.display = 'flex';
+  setTimeout(() => {
+    go.style.display = 'none'; go.classList.add('hidden');
+    tx.textContent = '게임 종료!'; sb.textContent = '결과를 불러오는 중...';   // 원래 문구 복원
+    noTimeMusicEnded = false; easterEggShown = false;
+    goHome();
+  }, 5000);
+}
+
+// 랜덤 파일 + (있으면) 랜덤 구간 재생. opt: {volume, loop, onDone, onPlay, onBlocked}
+function playClip(slot, list, opt) {
+  opt = opt || {};
+  const vol  = (opt.volume == null) ? 1 : opt.volume;
+  const loop = !!opt.loop;
+  let a = oneShot[slot];
+  if (!a) { try { a = oneShot[slot] = new Audio(); } catch (e) { return null; } }
+  cancelFade(a);                     // 이 슬롯이 페이드아웃 중이었다면 취소(즉시 재생, 페이드인 없음)
+  stopOthers(slot);                  // 다른 음원 정지(배경음악은 페이드아웃)
+
+  const raw = pickSrc(list);
+  const seg = pickSeg(raw);
+  const startAt = seg ? seg[0] : 0;
+  const stopAt  = seg ? seg[1] : null;
+
+  a.pause();
+  a.onended = null; a.ontimeupdate = null; a.onloadedmetadata = null; a.onerror = null;
+  a.src = encodeURI(raw);
+  a._baseVol = vol;
+  a.volume = vol * masterVolume;    // 음소거 시 masterVolume=0 → 무음
+  a.loop = loop && !seg;            // 구간 반복은 직접 처리하므로 native loop 끔
+
+  let done = false;
+  const finish = () => { if (done) return; done = true; if (opt.onDone) opt.onDone(); };
+
+  if (stopAt != null) {
+    a.ontimeupdate = () => {
+      if (a.currentTime >= stopAt) {
+        a.ontimeupdate = null;
+        if (loop) { playClip(slot, list, opt); }   // 반복: 새 랜덤 클립
+        else { a.pause(); finish(); }
+      }
+    };
+  } else if (!loop) {
+    a.onended = finish;
+  }
+  if (!loop) a.onerror = finish;     // 로드 실패해도 멈추지 않도록
+
+  const begin = () => {
+    try { a.currentTime = startAt; } catch (e) {}
+    const pr = a.play();
+    if (pr && pr.then) pr.then(() => { if (opt.onPlay) opt.onPlay(); })
+                         .catch(() => { if (opt.onBlocked) opt.onBlocked(); });
+  };
+  if (seg && a.readyState < 1) a.onloadedmetadata = begin;  // 구간 점프는 메타데이터 후 안전
+  else begin();
+  return a;
+}
+
+// 정답 음원: 맞출 때마다. 재생 중이면 멈추고 새로(랜덤 파일/구간) 재생.
+function playCorrect() { playClip('correct', SND.correct, { volume: 0.9 }); }
+
+// 오답 음원: 틀릴 때마다. 재생 중이면 멈추고 새로(랜덤 파일) 재생.
+function playWrong() { playClip('wrong', SND.wrong, { volume: 0.9 }); }
+
+// 마무리 음원: 결과화면에서 1회
+function playFinish() { playClip('finish', SND.finish, { volume: 0.9 }); }
+
+// 대기 배경음악: 메인(설정)화면이 보일 때만 반복 재생
+function syncBGM() {
+  const ent   = document.getElementById('entranceScreen');
+  const load  = document.getElementById('loadingScreen');
+  const login = document.getElementById('loginScreen');
+  const overlaysGone =
+    ent   && ent.classList.contains('gone') &&
+    load  && load.classList.contains('gone') &&
+    login && login.classList.contains('gone');
+  const menuShown = ['homeScreen', 'settingsScreen', 'appSettingsScreen'].some(id => {
+    const e = document.getElementById(id); return e && !e.classList.contains('hidden');
+  });
+  const mainVisible = overlaysGone && menuShown;
+  const a = oneShot['bgm'];
+  if (mainVisible) {
+    if (!bgmStarted) { bgmStarted = true; playClip('bgm', SND.bgm, { volume: 0.4, loop: true }); }
+    else if (a && (a.paused || a._fadeTimer)) { cancelFade(a); stopOthers('bgm'); a.play().catch(() => {}); }
+  } else {
+    if (a && !a.paused) fadeOutAudio(a, 1000);   // 메뉴를 벗어나면 대기 배경음악 페이드아웃
+  }
+}
+
+// 화면(클래스) 변화를 감시해 배경음악 자동 on/off
+function watchScreens() {
+  const obs = new MutationObserver(syncBGM);
+  ['homeScreen', 'settingsScreen', 'appSettingsScreen', 'entranceScreen', 'loadingScreen', 'loginScreen'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) obs.observe(el, { attributes: true, attributeFilter: ['class'] });
+  });
+}
+
+// ===================== 소리 크기 / 음소거 =====================
+function applyAudioSettings() {
+  for (const k in oneShot) {
+    const a = oneShot[k];
+    if (!a) continue;
+    a.volume = (a._baseVol == null ? 1 : a._baseVol) * masterVolume;
+  }
+}
+// 슬라이더/라벨/음소거 버튼 표시 동기화
+function refreshSoundUI() {
+  const pct = Math.round(masterVolume * 100);
+  const slider = document.getElementById('volumeSlider');
+  const lbl = document.getElementById('volumeLabel');
+  const btn = document.getElementById('muteBtn');
+  if (slider) slider.value = pct;
+  if (lbl) lbl.textContent = pct + '%';
+  if (btn) {
+    const isMuted = (masterVolume === 0);
+    btn.textContent = isMuted ? '🔇 음소거 해제' : '🔊 음소거';
+    btn.classList.toggle('on', isMuted);
+  }
+}
+function onVolumeChange(v) {
+  v = parseInt(v, 10); if (isNaN(v)) v = 0;
+  masterVolume = Math.max(0, Math.min(100, v)) / 100;
+  if (masterVolume > 0) prevVolume = masterVolume;
+  refreshSoundUI();
+  applyAudioSettings();
+  saveAppConfig();
+}
+// 음소거 = 소리 크기를 강제 0%로 (해제 시 직전 크기로 복원)
+function toggleMute() {
+  if (masterVolume > 0) { prevVolume = masterVolume; masterVolume = 0; }
+  else { masterVolume = (prevVolume > 0) ? prevVolume : 1; }
+  refreshSoundUI();
+  applyAudioSettings();
+  saveAppConfig();
+}
+
+// 앱 설정 저장/불러오기 (소리·타이머 모양; 전역 1개)
+const APPCFG_KEY = 'mathQuiz_appcfg';
+function saveAppConfig() {
+  try { localStorage.setItem(APPCFG_KEY, JSON.stringify({ vol: masterVolume, prevVol: prevVolume, timerStyle: userSettings.timerStyle })); } catch (e) {}
+}
+function loadAppConfig() {
+  try {
+    const c = JSON.parse(localStorage.getItem(APPCFG_KEY) || '{}');
+    if (typeof c.vol === 'number') masterVolume = c.vol;
+    if (typeof c.prevVol === 'number') prevVolume = c.prevVol;
+    if (c.timerStyle) userSettings.timerStyle = c.timerStyle;
+  } catch (e) {}
+}
+
+// ===================== 화면 전환: 로딩 → 로그인 → 실행 → 메인 =====================
+(function initBootFlow() {
+  loadAppConfig();
+  watchScreens();
+  const loading  = document.getElementById('loadingScreen');
+  const fill     = document.getElementById('loadBarFill');
+  const loadText = document.getElementById('loadText');
+  const msgs = ['불러오는 중...', '문제를 준비하는 중...'];
+  let p = 0;
+
+  const tick = setInterval(() => {
+    p += Math.random() * 16 + 6;
+    if (p >= 100) {
+      p = 100;
+      clearInterval(tick);
+      setTimeout(showLogin, 400);
+    }
+    fill.style.width = p + '%';
+    loadText.textContent = msgs[Math.min(msgs.length - 1, Math.floor(p / 40))];
+  }, 200);
+
+  // 로딩 끝 → 바로 로그인 화면
+  function showLogin() {
+    loading.classList.add('fade-out');
+    setTimeout(() => loading.classList.add('gone'), 600);
+    document.getElementById('loginScreen').classList.remove('gone');
+    showAuthView('choice');
+    const cm = document.getElementById('choiceMsg'); if (cm) cm.textContent = '';
+    startRunMusic();        // 실행 음원(무한반복) 시작 시도
+    armRunMusicUnlock();    // 자동재생 차단 시 첫 입력에서 시작
+  }
+})();
+
+// 실행 음원: 로그인 화면부터 무한반복으로 재생되는 배경음악
+let runMusicArmed = false;
+function startRunMusic() {
+  const a = oneShot['run'];
+  if (a && !a.paused) return;             // 이미 재생 중이면 그대로 둠
+  playClip('run', SND.run, { volume: 0.5, loop: true });
+}
+// 자동재생이 막히면 첫 사용자 입력(클릭/키)에서 실행 음원 시작
+function armRunMusicUnlock() {
+  if (runMusicArmed) return;
+  runMusicArmed = true;
+  const h = () => {
+    startRunMusic();
+    document.removeEventListener('pointerdown', h);
+    document.removeEventListener('keydown', h);
+    runMusicArmed = false;
+  };
+  document.addEventListener('pointerdown', h);
+  document.addEventListener('keydown', h);
+}
+
+// 로그인/게스트 → 실행화면 (실행 음원은 계속 반복, 잠시 후 메인)
+let execStarted = false;
+function goToExecution() {
+  if (execStarted) return;               // 중복 진입 방지
+  execStarted = true;
+  startRunMusic();                       // 아직 안 켜졌으면 시작(이 클릭이 제스처)
+  const statusEl = document.getElementById('entranceStatus'); if (statusEl) statusEl.textContent = '';
+  const lg = document.getElementById('loginScreen');
+  lg.classList.add('fade-out');
+  setTimeout(() => lg.classList.add('gone'), 600);
+  document.getElementById('entranceScreen').classList.remove('gone');
+  setTimeout(enterMain, 3500);           // 실행화면 잠깐 표시 후 메인('시작하기'로 즉시 진행 가능)
+}
+
+// 실행화면 → 메인(홈)
+let enteredMain = false;
+function enterMain() {
+  if (enteredMain) return;               // 중복 진입 방지
+  enteredMain = true;
+  const ent = document.getElementById('entranceScreen');
+  ent.classList.add('fade-out');
+  setTimeout(() => {
+    ent.classList.add('gone');
+    if (pendingTutorial) { pendingTutorial = false; startTutorial(); }   // 첫 로그인 → 튜토리얼
+    else goHome();
+  }, 600);
+}
+
+// ===================== 홈 / 게임설정 / 앱설정 전환 =====================
+function hideMenuScreens() {
+  ['homeScreen','settingsScreen','appSettingsScreen','quizScreen','resultScreen','countdownScreen','gameScreen','explanationScreen']
+    .forEach(id => { const e = document.getElementById(id); if (e) e.classList.add('hidden'); });
+}
+function goHome() {
+  clearAllTimers();
+  stopGameBgm();
+  noTimeMusicEnded = false; easterEggShown = false;   // 제한시간없음 이스터에그 플래그 초기화
+  if (typeof gameState !== 'undefined') {
+    if (gameState.sessionInterval) { clearInterval(gameState.sessionInterval); gameState.sessionInterval = null; }
+    if (gameState.countdownInterval) { clearInterval(gameState.countdownInterval); gameState.countdownInterval = null; }
+  }
+  hideMenuScreens();
+  document.getElementById('homeScreen').classList.remove('hidden');
+  updateUserBadge();
+  updateProfile();
+  renderRecords();
+  updateAchBadge();   // 새로 클리어한 업적 있으면 '업적' 버튼에 빨간 ! 배지
+  syncBGM();
+  if (tutorialActive && !tutMainDone) { tutMainDone = true; setTimeout(tutorialMainTour, 450); }   // 튜토리얼 메인 투어
+  else if (pendingHiddenReveal) {   // 숨겨진 업적 클리어 후 → '업적' 누르도록 유도
+    pendingHiddenReveal = false;
+    setTimeout(() => coachButton(document.querySelector('.home-profile'),
+      '🎉 <b>숨겨진 업적</b>을 클리어했어요!<br>여기 <b>업적</b>을 눌러 확인해 보세요.', null), 500);
+  }
+}
+function goGamePlay() {
+  hideMenuScreens();
+  document.getElementById('settingsScreen').classList.remove('hidden');
+  refreshSettingsVisibility();
+  syncBGM();
+  if (tutorialActive && !tutGamePlayDone) { tutGamePlayDone = true; setTimeout(tutorialGamePlayTour, 450); }   // 튜토리얼 게임설정 투어
+}
+function goAppSettings() {
+  hideMenuScreens();
+  document.getElementById('appSettingsScreen').classList.remove('hidden');
+  syncAppSettingsUI();
+  syncBGM();
+}
+function syncAppSettingsUI() {
+  document.querySelectorAll('#appSettingsScreen .timer-style-option').forEach(o => {
+    o.classList.toggle('active', o.dataset.style === userSettings.timerStyle);
+  });
+  refreshSoundUI();
+}
+
+// ===================== 프로필 / 기록 / 업적 =====================
+function updateProfile() {
+  const nameEl = document.getElementById('profileName');
+  const idEl = document.getElementById('profileId');
+  if (currentUser) {
+    const accts = loadAccounts();
+    const nm = (accts[currentUser] && accts[currentUser].name) ? accts[currentUser].name : currentUser;
+    if (nameEl) nameEl.textContent = nm;
+    if (idEl) idEl.textContent = '@' + currentUser;
+  } else {
+    if (nameEl) nameEl.textContent = '게스트';
+    if (idEl) idEl.textContent = '게스트는 기록이 저장되지 않습니다';
+  }
+}
+function getUserRecords() {
+  if (!currentUser) return [];
+  const prefix = 'mathQuiz_rec_' + currentUser + '_';
+  const out = [];
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.indexOf(prefix) === 0) {
+        const sub = k.slice(prefix.length);
+        if (sub.indexOf('ach_') === 0) continue;   // 업적 진행도는 홈 '최고 기록'에서 제외
+        out.push({ key: sub, val: localStorage.getItem(k) });
+      }
+    }
+  } catch (e) {}
+  return out;
+}
+function formatRecordKey(k) {
+  let s = k.replace(/^mathQuiz_/, '').replace(/_best$/, '').replace('_best_', ' ');
+  return s.replace(/_/g, ' ').trim();
+}
+function renderRecords() {
+  const wrap = document.getElementById('recordCards');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  if (!currentUser) {
+    wrap.innerHTML = '<div class="record-empty">게스트 모드에서는 지원하지 않습니다</div>';
+    return;
+  }
+  const recs = getUserRecords();
+  if (!recs.length) {
+    wrap.innerHTML = '<div class="record-empty">아직 기록이 없어요.<br>게임을 플레이해 최고 기록을 만들어 보세요! 🎮</div>';
+    return;
+  }
+  recs.forEach(r => {
+    const div = document.createElement('div');
+    div.className = 'record-card';
+    div.innerHTML = '<div class="rec-title">' + formatRecordKey(r.key) + '</div>' +
+                    '<div class="rec-val">' + r.val + '<span class="unit">개</span></div>';
+    wrap.appendChild(div);
+  });
+}
+function openAchievements() {
+  renderAchievements();
+  const m = document.getElementById('achievementsModal');
+  if (m) m.classList.remove('hidden');
+}
+function closeAchievements(e) {
+  if (e && e.target !== e.currentTarget) return;  // 카드 내부 클릭은 무시(배경 클릭만 닫기)
+  const m = document.getElementById('achievementsModal');
+  if (m) m.classList.add('hidden');
+}
+
+// ===================== 업적 (엑셀 기반) =====================
+// 단원별로 묶고, 각 단원은 위→아래로 갈수록 상위. 단원마다 '최하위 미클리어 1개'를 표시 → 모든 단원이 보임.
+// 이름 = '(단원)의 (내용)'. 진행도 = 단원·모드별 최고 정답 수.
+const ACH_GROUPS = [
+  { unit:'정수와 유리수', icon:'🔢', items:[
+    { cat:'fixed5', content:"5문제 도전'에서 만점을 받자", target:5 },
+    { cat:'timeattack', content:"타임어택'에서 10문제를 맞자", target:10 },
+    { cat:'survival', content:"서바이벌'에서 15문제 풀자", target:15 }
+  ]},
+  { unit:'일차방정식', icon:'📐', items:[
+    { cat:'timeattack', content:"타임어택'에서 15문제를 맞자", target:15 },
+    { cat:'survival', content:"서바이벌'에서 20문제 풀자", target:20 }
+  ]},
+  { unit:'지수', icon:'🔋', items:[
+    { cat:'timeattack', content:"타임어택'에서 20문제를 맞자", target:20 },
+    { cat:'survival', content:"서바이벌'에서 25문제 풀자", target:25 }
+  ]},
+  { unit:'지수법칙(중2)', icon:'✖️', items:[
+    { cat:'timeattack', content:"타임어택'에서 25문제를 맞자", target:25 },
+    { cat:'survival', content:"서바이벌'에서 30문제 풀자", target:30 }
+  ]},
+  { unit:'지수법칙(고2)', icon:'➗', items:[
+    { cat:'timeattack', content:"타임어택'에서 30문제를 맞자", target:30 },
+    { cat:'survival', content:"서바이벌'에서 35문제 풀자", target:35 }
+  ]},
+  { unit:'등차수열', icon:'📈', items:[
+    { cat:'survival', content:"서바이벌'에서 40문제 풀자", target:40 }
+  ]},
+  { unit:'등비수열', icon:'📉', items:[
+    { cat:'survival', content:"서바이벌'에서 45문제 풀자", target:45 }
+  ]},
+  { unit:'수열의 일반항', icon:'🔣', items:[
+    { cat:'survival', content:"서바이벌'에서 50문제 풀자", target:50 }
+  ]}
+];
+function achKeyOf(unit, cat) { return 'ach_' + unit + '_' + cat; }
+function achBest(unit, cat) {
+  const v = recordGet(achKeyOf(unit, cat));   // 계정별 최고 정답 수
+  return v ? (parseInt(v, 10) || 0) : 0;
+}
+function recordAchProgress(unit, mode, count) {
+  if (mode !== 'fixed5' && mode !== 'timeattack' && mode !== 'survival') return;
+  if (count > achBest(unit, mode)) recordSet(achKeyOf(unit, mode), String(count));   // 최고기록 갱신
+}
+
+// 숨겨진 업적 (평소엔 안 보이고, 클리어해야 공개 · 영구 저장)
+const HIDDEN_ACH = [
+  { id:'longplay', icon:'🕰️', name:'23분의 끈기', desc:"'제한시간 없음'으로 23분 동안 플레이하기" }
+];
+let pendingHiddenReveal = false;   // 메인에서 '업적' 누르도록 유도
+let announceHiddenId = null;       // 모달에서 '방금 클리어' 안내
+function hiddenCleared(id) { return recordGet('ach_hidden_' + id) === '1'; }
+function clearHidden(id) { recordSet('ach_hidden_' + id, '1'); }   // 영구 저장
+
+// 클리어 확인(알림) 상태 — 영구 저장. (홈 기록과 분리: 'ach_' 접두사 → 홈에 안 보임)
+function achAcked(unit, cat) { return recordGet('ach_ack_' + unit + '_' + cat) === '1'; }
+function achAck(unit, cat) { recordSet('ach_ack_' + unit + '_' + cat, '1'); }
+function achDone(unit, cat, target) { return achBest(unit, cat) >= target; }
+function hasNewAchClears() {   // 새로 클리어했으나 아직 확인 안 한 업적
+  if (!currentUser) return false;
+  for (const g of ACH_GROUPS) for (const it of g.items)
+    if (achDone(g.unit, it.cat, it.target) && !achAcked(g.unit, it.cat)) return true;
+  return false;
+}
+function updateAchBadge() {
+  const b = document.getElementById('achBadge');
+  if (b) b.style.display = hasNewAchClears() ? 'flex' : 'none';
+}
+
+function renderAchievements() {
+  const wrap = document.getElementById('achList');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  if (!currentUser) {
+    const note = document.createElement('div');
+    note.className = 'record-empty'; note.style.marginBottom = '10px';
+    note.textContent = '게스트는 업적 진행도가 저장되지 않습니다';
+    wrap.appendChild(note);
+  }
+
+  // (숨겨진 업적) 방금 클리어 축하 배너
+  if (announceHiddenId) {
+    const b = document.createElement('div');
+    b.className = 'ach-clear-banner';
+    b.innerHTML = '🎉 숨겨진 업적을 클리어했습니다!';
+    wrap.appendChild(b);
+  }
+
+  // 1) 방금 클리어한 (일반) 업적 → '클리어!' 메시지 + 확인 처리
+  const newly = [];
+  ACH_GROUPS.forEach(g => g.items.forEach(it => {
+    if (achDone(g.unit, it.cat, it.target) && !achAcked(g.unit, it.cat)) newly.push({ g, it });
+  }));
+  newly.forEach(n => {
+    const banner = document.createElement('div');
+    banner.className = 'ach-clear-banner';
+    banner.innerHTML = "🎉 <b>" + n.g.unit + "의 '" + n.it.content + "</b> 업적을 클리어!";
+    wrap.appendChild(banner);
+    achAck(n.g.unit, n.it.cat);
+  });
+
+  // (숨겨진 업적) 클리어한 숨겨진 업적 — 맨 위 (영구 저장)
+  const clearedHidden = HIDDEN_ACH.filter(a => hiddenCleared(a.id));
+  if (clearedHidden.length) {
+    const headH = document.createElement('div');
+    headH.className = 'ach-group'; headH.textContent = '🎁 클리어한 숨겨진 업적';
+    wrap.appendChild(headH);
+    clearedHidden.forEach(a => {
+      const isNew = (a.id === announceHiddenId);
+      const item = document.createElement('div');
+      item.className = 'ach-item done';
+      item.innerHTML =
+        '<span class="ach-ico">' + a.icon + '</span>' +
+        '<div style="flex:1; min-width:0;"><b>' + a.name + '</b>' +
+        (isNew ? ' <span style="color:#e53935; font-size:11px; font-weight:bold;">NEW!</span>' : '') +
+        '<div class="ach-prog" style="display:block;">' + a.desc + ' · ✅ 클리어!</div></div>';
+      wrap.appendChild(item);
+    });
+  }
+  announceHiddenId = null;
+
+  // 2) 진행 중 업적: 단원별 '최하위 미클리어' 1개 (바 + x / y) → 모든 단원 표시
+  const headA = document.createElement('div');
+  headA.className = 'ach-group'; headA.textContent = '🎯 진행 중인 업적';
+  wrap.appendChild(headA);
+  let anyActive = false;
+  ACH_GROUPS.forEach(g => {
+    const active = g.items.find(it => !achDone(g.unit, it.cat, it.target));
+    if (!active) return;   // 이 단원 전부 클리어 → 표시 안 함
+    anyActive = true;
+    const best = achBest(g.unit, active.cat);
+    const pct = Math.min(100, Math.round(best / active.target * 100));
+    const item = document.createElement('div');
+    item.className = 'ach-item locked';
+    item.innerHTML =
+      '<span class="ach-ico">' + g.icon + '</span>' +
+      '<div style="flex:1; min-width:0;">' +
+        '<b>' + g.unit + "의 '" + active.content + '</b>' +
+        '<div class="ach-prog2">' +
+          '<div class="ach-bar"><div style="width:' + pct + '%;"></div></div>' +
+          '<span class="ach-xy">' + best + ' / ' + active.target + '</span>' +
+        '</div>' +
+      '</div>';
+    wrap.appendChild(item);
+  });
+  if (!anyActive) {
+    const all = document.createElement('div');
+    all.className = 'ach-prog'; all.style.cssText = 'padding:10px; text-align:center;';
+    all.textContent = '모든 업적을 클리어했어요! 🎉';
+    wrap.appendChild(all);
+  }
+
+  // 3) 완료한 업적 (최하단, 접이식, 기본 접힘)
+  const cleared = [];
+  ACH_GROUPS.forEach(g => g.items.forEach(it => {
+    if (achDone(g.unit, it.cat, it.target)) cleared.push({ g, it });
+  }));
+  const foldHead = document.createElement('div');
+  foldHead.className = 'ach-fold-head';
+  foldHead.innerHTML = '<span>✅ 완료한 업적 (' + cleared.length + ')</span><span class="ach-fold-arrow">▼</span>';
+  const foldBody = document.createElement('div');
+  foldBody.style.display = 'none';   // 기본 접힘
+  if (!cleared.length) {
+    foldBody.innerHTML = '<div class="ach-prog" style="padding:8px;">아직 완료한 업적이 없어요.</div>';
+  } else {
+    cleared.forEach(c => {
+      const d = document.createElement('div');
+      d.className = 'ach-item done';
+      d.innerHTML = '<span class="ach-ico">🏆</span><div style="flex:1; min-width:0;"><b>' + c.g.unit + "의 '" + c.it.content + '</b></div>';
+      foldBody.appendChild(d);
+    });
+  }
+  foldHead.onclick = () => {
+    const open = foldBody.style.display !== 'none';
+    foldBody.style.display = open ? 'none' : 'block';
+    foldHead.querySelector('.ach-fold-arrow').textContent = open ? '▼' : '▲';
+  };
+  wrap.appendChild(foldHead);
+  wrap.appendChild(foldBody);
+
+  updateAchBadge();   // 확인 처리 후 배지 갱신
+}
+
+// ===================== 코치 오버레이 (튜토리얼 안내) =====================
+const COACH_FADE = 300;
+const coach = { blocker:null, spot:null, box:null, raised:null, listeners:[], visible:false, hideTimer:null };
+function coachInit() {
+  if (coach.blocker) return;
+  coach.blocker = document.createElement('div'); coach.blocker.className = 'coach-blocker';
+  coach.spot = document.createElement('div'); coach.spot.className = 'coach-spot';
+  coach.box = document.createElement('div'); coach.box.className = 'coach-box';
+  document.body.appendChild(coach.blocker);
+  document.body.appendChild(coach.spot);
+  document.body.appendChild(coach.box);
+}
+function coachClearHandlers() {
+  if (coach.raised) {
+    coach.raised.el.style.zIndex = coach.raised.z;
+    coach.raised.el.style.position = coach.raised.pos;
+    coach.raised.el.classList.remove('coach-pulse');
+    coach.raised = null;
+  }
+  coach.listeners.forEach(l => l.el.removeEventListener(l.ev, l.h));
+  coach.listeners = [];
+  if (coach.blocker) coach.blocker.onclick = null;
+}
+function coachPlaceSpot(rect) {
+  const pad = 10;
+  if (!rect) {
+    coach.spot.style.left = '50%'; coach.spot.style.top = '50%';
+    coach.spot.style.width = '0px'; coach.spot.style.height = '0px'; coach.spot.style.borderRadius = '0';
+  } else {
+    coach.spot.style.left = (rect.left - pad) + 'px';
+    coach.spot.style.top = (rect.top - pad) + 'px';
+    coach.spot.style.width = (rect.width + pad * 2) + 'px';
+    coach.spot.style.height = (rect.height + pad * 2) + 'px';
+    coach.spot.style.borderRadius = '14px';
+  }
+}
+function coachPlaceBox(rect) {
+  const box = coach.box; box.style.display = 'block';
+  const bw = box.offsetWidth, bh = box.offsetHeight, vw = window.innerWidth, vh = window.innerHeight;
+  box.classList.remove('coach-box-up', 'coach-box-down');
+  if (!rect) {
+    box.style.left = Math.max(10, (vw - bw) / 2) + 'px';
+    box.style.top = Math.max(10, (vh - bh) / 2) + 'px';
+    return;
+  }
+  let left = rect.left + rect.width / 2 - bw / 2;
+  left = Math.max(10, Math.min(left, vw - bw - 10));
+  let top, dir;
+  if (rect.bottom + 16 + bh < vh) { top = rect.bottom + 16; dir = 'down'; }
+  else { top = rect.top - 16 - bh; dir = 'up'; }
+  box.style.left = left + 'px';
+  box.style.top = Math.max(10, top) + 'px';
+  box.classList.add(dir === 'down' ? 'coach-box-down' : 'coach-box-up');
+}
+// 렌더 + 페이드 인
+function coachRender(el, html, isExplain) {
+  coachInit();
+  if (coach.hideTimer) { clearTimeout(coach.hideTimer); coach.hideTimer = null; }
+  if (el && el.scrollIntoView) { try { el.scrollIntoView({ block: 'center' }); } catch (e) {} }
+  const rect = el ? el.getBoundingClientRect() : null;
+  coach.box.innerHTML = html + (isExplain ? '<div class="coach-next">화면을 누르면 다음으로 ▶</div>' : '');
+  coach.blocker.style.display = 'block'; coach.spot.style.display = 'block'; coach.box.style.display = 'block';
+  coachPlaceSpot(rect); coachPlaceBox(rect);
+  coach.blocker.style.opacity = '0'; coach.spot.style.opacity = '0'; coach.box.style.opacity = '0';
+  requestAnimationFrame(() => { coach.blocker.style.opacity = '1'; coach.spot.style.opacity = '1'; coach.box.style.opacity = '1'; });
+  coach.visible = true;
+}
+// 페이드 아웃 후 cb
+function coachHideAll(cb) {
+  coachInit();
+  coachClearHandlers();
+  if (coach.visible) {
+    coach.blocker.style.opacity = '0'; coach.spot.style.opacity = '0'; coach.box.style.opacity = '0';
+    coach.visible = false;
+    coach.hideTimer = setTimeout(() => {
+      coach.blocker.style.display = 'none'; coach.spot.style.display = 'none'; coach.box.style.display = 'none';
+      coach.hideTimer = null; if (cb) cb();
+    }, COACH_FADE);
+  } else {
+    coach.blocker.style.display = 'none'; coach.spot.style.display = 'none'; coach.box.style.display = 'none';
+    if (cb) cb();
+  }
+}
+// 설명: 아무 곳이나 탭하면 다음
+function coachExplain(el, html, cb) {
+  coachClearHandlers();
+  coachRender(el, html, true);
+  coach.blocker.onclick = () => { coachHideAll(cb); };
+}
+// 동작 유도: el(또는 자식)에서 events 발생 시 진행. el만 클릭 가능 + 펄스. 다른 곳은 차단.
+function coachAct(el, html, events, cb) {
+  if (!el) { coachHideAll(cb); return; }
+  coachClearHandlers();
+  coachRender(el, html, false);
+  coach.blocker.onclick = (e) => { e.stopPropagation(); e.preventDefault(); };
+  coach.raised = { el, z: el.style.zIndex, pos: el.style.position };
+  if (!el.style.position || el.style.position === 'static') el.style.position = 'relative';
+  el.style.zIndex = '2002';
+  el.classList.add('coach-pulse');
+  const h = () => { coachHideAll(cb); };
+  events.forEach(ev => { el.addEventListener(ev, h); coach.listeners.push({ el, ev, h }); });
+}
+function coachButton(el, html, cb) { coachAct(el, html, ['click'], cb); }
+function coachSequence(steps, onComplete) {
+  let i = 0;
+  (function nxt() {
+    if (i >= steps.length) { if (onComplete) onComplete(); return; }
+    const s = steps[i++];
+    const el = s.sel ? document.querySelector(s.sel) : null;
+    coachExplain(el, s.html, nxt);
+  })();
+}
+
+// ===================== 튜토리얼 =====================
+let pendingTutorial = false, tutMainDone = false, tutGamePlayDone = false;
+let tutFirstGamePending = false;   // 투어 끝 → 다음(첫) 실게임에서 문제풀이 코칭
+let tutGameCoaching = false;       // 그 첫 게임 진행 중(1번 정답 강조 + 해설 유도)
+let guestSeenModes = {};
+// 튜토리얼 문제(단순 더하기/빼기, 선지 고정)
+const TUTORIAL_PROBLEMS = [
+  { a: 3,  op: '+', b: 4, answer: 7,  options: [5, 6, 7, 8] },
+  { a: 9,  op: '-', b: 5, answer: 4,  options: [3, 4, 5, 6] },
+  { a: 6,  op: '+', b: 7, answer: 13, options: [11, 12, 13, 14] },
+  { a: 12, op: '-', b: 8, answer: 4,  options: [2, 4, 6, 8] },
+  { a: 8,  op: '+', b: 9, answer: 17, options: [15, 16, 17, 18] }
+];
+const MODE_INTRO = {
+  fixed5: '<b>5문제 도전</b> 🏁<br>전체 제한시간 안에 5문제를 풀어요. 각 문제의 정답을 골라 보세요!',
+  timeattack: '<b>타임어택</b> ⚡<br>제한시간 동안 최대한 많이 맞혀요. 정답을 고르면 바로 다음 문제로!',
+  survival: '<b>서바이벌</b> 🔥<br>한 번이라도 틀리면 끝! 시간 제한 없이 최대한 길게 이어가 보세요.'
+};
+function buildTutorialProblem(i) {
+  const t = TUTORIAL_PROBLEMS[i] || TUTORIAL_PROBLEMS[0];
+  const opts = t.options.map(v => ({ html: `<span class="num-text">${v}</span>`, key: String(v), isCorrect: v === t.answer }));
+  return {
+    problemHTML: `<span class="num-text">${t.a}</span><span class="op">${t.op}</span><span class="num-text">${t.b}</span><span class="op">=</span><span class="op">?</span>`,
+    options: opts,
+    correctIdx: opts.findIndex(o => o.isCorrect),
+    reviewHTML: `<span class="num-text">${t.a} ${t.op} ${t.b} = ${t.answer}</span>`,
+    topic: '튜토리얼', data: t
+  };
+}
+// 모드 첫 진행 기록 (계정별 / 게스트는 세션)
+function modeSeen(key) {
+  if (currentUser) { const a = loadAccounts(); return !!(a[currentUser] && a[currentUser].seenModes && a[currentUser].seenModes[key]); }
+  return !!guestSeenModes[key];
+}
+function markModeSeen(key) {
+  if (currentUser) {
+    const a = loadAccounts();
+    if (a[currentUser]) { a[currentUser].seenModes = a[currentUser].seenModes || {}; a[currentUser].seenModes[key] = true; saveAccounts(a); }
+  } else guestSeenModes[key] = true;
+}
+// 튜토리얼 시작 (첫 로그인 시) — 전용 퀴즈 없이 메인 투어부터 시작
+function startTutorial() {
+  tutorialActive = true; tutMainDone = false; tutGamePlayDone = false;
+  tutFirstGamePending = false; tutGameCoaching = false;
+  goHome();   // 홈 → 메인 투어 → 게임설정 투어 → 첫 실게임에서 문제풀이 코칭
+}
+// 튜토리얼 1번 문제: 정답(구할 값) 강조
+function tutorialHighlightAnswer() {
+  setTimeout(() => {
+    const opts = document.querySelectorAll('#options .option');
+    const el = opts[currentProblem.correctIdx];
+    coachButton(el, '문제에서 <b>구해야 하는 값(정답)</b>을 고르면 돼요.<br>강조된 이 칸을 눌러 보세요! 👆', null);
+  }, 200);
+}
+// 튜토리얼: 결과 후 해설 유도
+function tutorialAfterResult() {
+  setTimeout(() => {
+    let target = answerHistory.findIndex(h => !h.isCorrect);
+    if (target < 0) target = 1;   // 틀린 문제 없으면 2번
+    const btns = document.querySelectorAll('#resultReview .explain-btn');
+    coachButton(btns[target], '이 버튼을 누르면 문제에 사용된 <b>개념과 해설</b>을 볼 수 있습니다.', null);
+  }, 300);
+}
+// 메인 화면 투어
+function tutorialMainTour() {
+  coachSequence([
+    { sel: '.home-profile', html: '여기 <b>프로필</b>을 누르면 <b>업적 시스템</b>을 볼 수 있어요. 다양한 도전 과제가 준비될 거예요!' },
+    { sel: '#recordCards', html: '<b>최고 기록</b> 🏅<br>모드별 최고 점수가 여기에 모여요.' },
+    { sel: '.menu-card.play', html: '<b>게임 시작</b> 🎮<br>여기에서 본 게임을 즐길 수 있습니다.' },
+    { sel: '.menu-card.config', html: '<b>설정</b> ⚙️<br>이곳에서는 음량이나 남은 시간 표기 방법 등을 바꿀 수 있습니다.' }
+  ], () => {
+    coachButton(document.querySelector('.menu-card.play'), '이제 <b>게임 플레이</b>를 눌러 게임 설정을 살펴볼까요?', null);
+  });
+}
+// 게임 설정(플레이) 투어 — 각 단계에서 사용자가 직접 버튼/선택을 눌러야 다음으로
+function tutorialGamePlayTour() {
+  const topicEl = document.getElementById('topicSelect');
+  const modeGrid = document.querySelector('.mode-grid');
+  const timeBlock = document.getElementById('timeLimitBlock');
+  const finishTour = () => {
+    tutorialActive = false;
+    tutGamePlayDone = true;
+    tutFirstGamePending = true;   // 다음(첫) 게임에서 문제풀이 코칭
+    if (currentUser) { const a = loadAccounts(); if (a[currentUser]) { a[currentUser].tutDone = true; saveAccounts(a); } }
+    const startBtn = document.querySelector('#settingsScreen .start-btn');
+    coachButton(startBtn, '준비 완료! <b>퀴즈 시작</b>을 눌러 첫 게임을 시작해 보세요. 🎮', null);
+  };
+  coachAct(topicEl, '<b>문제 주제(단원)</b> 📚<br>풀고 싶은 단원을 하나 골라 보세요.', ['change'], () => {
+    coachAct(modeGrid, '<b>퀴즈 모드</b> 🎯<br>원하는 모드를 눌러 보세요. (5문제 도전·타임어택·서바이벌)', ['click'], () => {
+      const am = document.querySelector('.mode-option.active');
+      const m = am ? am.dataset.mode : 'fixed5';
+      if (m === 'survival') { finishTour(); }   // 서바이벌은 제한시간 없음 → 시간 단계 생략
+      else { coachAct(timeBlock, '<b>전체 제한시간</b> ⏱<br>시간을 하나 눌러 골라 보세요.', ['click'], finishTour); }
+    });
+  });
+}
+
+// ===================== 계정 / 로그인 =====================
+const ACCT_KEY = 'mathQuiz_accounts';   // { id: { pw } }
+let currentUser = null;                 // null = 게스트 (기록 저장 안 함)
+const ID_RE = /^[A-Za-z0-9]+$/;         // 영문 / 숫자만
+
+function loadAccounts() {
+  try { return JSON.parse(localStorage.getItem(ACCT_KEY) || '{}'); }
+  catch (e) { return {}; }
+}
+function saveAccounts(obj) {
+  try { localStorage.setItem(ACCT_KEY, JSON.stringify(obj)); } catch (e) {}
+}
+
+// 로그인 화면 내부 뷰 전환 (choice / login / signup)
+function showAuthView(view) {
+  document.getElementById('authChoice').style.display = (view === 'choice') ? '' : 'none';
+  document.getElementById('authLogin').style.display  = (view === 'login')  ? '' : 'none';
+  document.getElementById('authSignup').style.display = (view === 'signup') ? '' : 'none';
+  if (view !== 'login')  { const m = document.getElementById('loginMsg');  if (m) m.textContent = ''; }
+  if (view !== 'signup') { const m = document.getElementById('signupMsg'); if (m) m.textContent = ''; }
+  if (view !== 'choice') { const m = document.getElementById('choiceMsg'); if (m) m.textContent = ''; }
+}
+
+// Enter 키: 다음 칸으로 이동(문자열 id) 또는 제출(함수)
+function onEnter(e, next) {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  if (typeof next === 'function') next();
+  else { const el = document.getElementById(next); if (el) el.focus(); }
+}
+
+// 회원가입
+function doSignup() {
+  const id   = document.getElementById('signupId').value.trim();
+  const pw   = document.getElementById('signupPw').value;
+  const pw2  = document.getElementById('signupPw2').value;
+  const name = document.getElementById('signupName').value.trim();
+  const msg  = document.getElementById('signupMsg');
+  msg.className = 'auth-msg err';
+  if (!id || !pw || !pw2 || !name) { msg.textContent = '모든 칸을 입력하세요.'; return; }
+  if (!ID_RE.test(id) || !ID_RE.test(pw)) {
+    msg.textContent = '아이디·비밀번호는 영문, 숫자만 사용할 수 있어요.'; return;
+  }
+  if (pw !== pw2) { msg.textContent = '비밀번호가 서로 달라요. 다시 확인해 주세요.'; return; }
+  const accts = loadAccounts();
+  if (accts[id]) { msg.textContent = '이미 사용 중인(중복된) ID입니다.'; return; }
+  accts[id] = { pw: pw, name: name };
+  saveAccounts(accts);
+  // 완료 → 로그인 화면(선택)으로 복귀
+  document.getElementById('signupId').value = '';
+  document.getElementById('signupPw').value = '';
+  document.getElementById('signupPw2').value = '';
+  document.getElementById('signupName').value = '';
+  showAuthView('choice');
+  const cm = document.getElementById('choiceMsg');
+  if (cm) { cm.className = 'auth-msg ok'; cm.textContent = '회원가입 완료! 로그인해 주세요.'; }
+}
+
+// 로그인
+function doLogin() {
+  const id  = document.getElementById('loginId').value.trim();
+  const pw  = document.getElementById('loginPw').value;
+  const msg = document.getElementById('loginMsg');
+  msg.className = 'auth-msg err';
+  if (!id || !pw) { msg.textContent = '아이디와 비밀번호를 입력하세요.'; return; }
+  const accts = loadAccounts();
+  if (!accts[id] || accts[id].pw !== pw) {
+    msg.textContent = 'ID나 비밀번호가 틀렸습니다.'; return;
+  }
+  currentUser = id;          // 이 계정의 기록을 이어서 사용
+  pendingTutorial = !(accts[id] && accts[id].tutDone);   // 첫 로그인이면 튜토리얼 진행
+  document.getElementById('loginId').value = '';
+  document.getElementById('loginPw').value = '';
+  goToExecution();          // 로그인 성공 → 실행화면
+}
+
+// 계정 없이 실행 (기록 저장 안 함)
+function playAsGuest() {
+  currentUser = null;
+  goToExecution();          // 게스트 → 실행화면
+}
+
+function updateUserBadge() {
+  const b = document.getElementById('userBadge');
+  if (!b) return;
+  b.style.display = '';
+  if (currentUser) {
+    const accts = loadAccounts();
+    const nm = (accts[currentUser] && accts[currentUser].name) ? accts[currentUser].name : currentUser;
+    b.textContent = '👤 ' + nm;
+    b.classList.remove('guest');
+  } else {
+    b.textContent = '게스트 모드 · 기록 저장 안 됨';
+    b.classList.add('guest');
+  }
+}
+
+// ===================== 기록 저장 (계정별) =====================
+// 게스트(currentUser === null)는 저장/불러오기 안 함
+function recordGet(key) {
+  if (!currentUser) return null;
+  try { return localStorage.getItem('mathQuiz_rec_' + currentUser + '_' + key); }
+  catch (e) { return null; }
+}
+function recordSet(key, val) {
+  if (!currentUser) return;
+  try { localStorage.setItem('mathQuiz_rec_' + currentUser + '_' + key, val); }
+  catch (e) {}
+}
+</script>
+</body>
+</html>
